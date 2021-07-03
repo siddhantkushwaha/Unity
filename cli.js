@@ -105,7 +105,7 @@ startServer(1627)
             switch (command) {
                 case 'login':
 
-                    const email = prompt('Enter an email: ')
+                    const email = prompt('Enter an email: ').trim()
                     sendLinkForLoginAndWait(email)
 
                     break;
@@ -177,7 +177,7 @@ startServer(1627)
     })
     .catch(error => {
         if (error.code === 'EADDRINUSE') {
-            console.log('Another Unity shell alredy active. Please close that session or resuse.')
+            console.log('Another Unity shell alredy active. Please close that session or reuse.')
         }
         else {
             console.log('Some error occured.')
