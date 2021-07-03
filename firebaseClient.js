@@ -52,20 +52,28 @@ const signInWithEmailAndPassword = (email, password) => {
 
 const saveUser = user => {
     return new Promise((resolve, reject) => {
+        const writeUser = () => {
+            const userSerialized = JSON.stringify(user.toJSON())
+            fs.writeFile(userPath, userSerialized, error => {
+                if (error)
+                    reject(error)
+                else
+                    resolve()
+            })
+        }
+
         if (!fs.existsSync(projectPath)) {
             fs.mkdir(projectPath, error => {
                 if (error)
                     reject(error)
                 else {
                     const userSerialized = JSON.stringify(user.toJSON())
-                    fs.writeFile(userPath, userSerialized, error => {
-                        if (error)
-                            reject(error)
-                        else
-                            resolve()
-                    })
+                    writeUser()
                 }
             })
+        }
+        else {
+            writeUser()
         }
     })
 }

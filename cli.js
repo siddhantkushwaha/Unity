@@ -25,13 +25,13 @@ const sendLinkForLoginAndWait = email => {
             setTimeout(() => {
                 if (!isVerificationLinkReceived) {
                     console.log('It has been 5 minutes, timing out.')
-                    closeServer()
+                    terminate()
                 }
             }, 5 * 60 * 1000)
         })
         .catch(error => {
             console.log('Could not send link for email verification.', error.message)
-            closeServer()
+            terminate()
         })
 }
 
@@ -66,11 +66,11 @@ const server = http.createServer((request, response) => {
         loginWithEmailAndLink(emailToLogin, fullUrl)
             .then(credentials => {
                 console.log(`Login successfull with email ${emailToLogin}.`)
-                closeServer()
+                terminate()
             })
             .catch(error => {
                 console.log('Login failed.', error.message)
-                closeServer()
+                terminate()
             })
     }
     else {
@@ -92,8 +92,9 @@ const startServer = (port) => {
     })
 }
 
-const closeServer = () => {
+const terminate = () => {
     server.close()
+    process.exit(0)
 }
 
 startServer(1627)
@@ -118,7 +119,7 @@ startServer(1627)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            closeServer()
+                            terminate()
                         })
 
                     break;
@@ -132,7 +133,7 @@ startServer(1627)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            closeServer()
+                            terminate()
                         })
 
                     break;
@@ -146,32 +147,32 @@ startServer(1627)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            closeServer()
+                            terminate()
                         })
 
                     break;
                 case 'stop':
 
                     // stop clipboard management services
-                    closeServer()
+                    terminate()
 
                     break;
                 case 'help':
 
                     showIntro()
-                    closeServer()
+                    terminate()
 
                     break;
                 default:
                     console.error('Invalid command.')
                     showIntro()
-                    closeServer()
+                    terminate()
                     break;
             }
         }
         else {
             showIntro()
-            closeServer()
+            terminate()
         }
     })
     .catch(error => {
@@ -182,3 +183,10 @@ startServer(1627)
             console.log('Some error occured.')
         }
     })
+
+setTimeout(() => {
+
+    console.log('\n\nTiming out this session.')
+    terminate()
+
+}, 10 * 60 * 1000)
