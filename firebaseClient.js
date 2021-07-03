@@ -9,47 +9,6 @@ firebase.initializeApp(credentials)
 const projectPath = `${os.homedir()}/.projectunity`
 const userPath = `${projectPath}/user.json`
 
-const signUpWithEmailAndPassword = (email, password) => {
-    return new Promise((resolve, reject) => {
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then(credentials => {
-                resolve(credentials)
-            })
-            .catch(error => {
-                reject(error)
-            })
-    })
-}
-
-const signInWithEmailAndPassword = (email, password) => {
-    return new Promise((resolve, reject) => {
-        firebase.auth().signInWithEmailAndPassword(email, password)
-            .then(credentials => {
-                resolve(credentials)
-            })
-            .catch(error => {
-                const errorCode = error.code
-                const errorMessage = error.message
-                switch (errorCode) {
-                    case 'auth/invalid-email':
-                        reject(error)
-                        break;
-                    case 'auth/user-not-found':
-                        signUpWithEmailAndPassword(email, password)
-                            .then(credentials => resolve(credentials))
-                            .catch(error => reject(error))
-                        break;
-                    case 'auth/wrong-password':
-                        reject(error)
-                        break;
-                    case 'auth/user-disabled':
-                        reject(error)
-                        break;
-                }
-            })
-    })
-}
-
 const saveUser = user => {
     return new Promise((resolve, reject) => {
         const writeUser = () => {
