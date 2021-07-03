@@ -1,0 +1,13 @@
+{
+  "name": "unity",
+  "version": "1.0.0",
+  "description": "Clipboard superpowers.",
+  "main": "main",
+  "scripts": {},
+  "author": "Siddhant Kushwaha",
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^8.7.0",
+    "prompt-sync": "^4.2.0"
+  }
+}
