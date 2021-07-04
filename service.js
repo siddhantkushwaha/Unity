@@ -1,5 +1,6 @@
 const fs = require('fs')
 const net = require('net')
+const { terminate } = require('./util')
 const { spawn } = require('child_process')
 const { handleMessage } = require('./requestHandler')
 
@@ -12,6 +13,37 @@ const terminate = (code) => {
 	// killing main process should kill everything
 	process.exit(code)
 }
+
+// ------------------- clipboard server -----------------------------------------------------
+
+const server = net.createServer(socket => {
+	socket.on('data', data => {
+		try {
+			const dataSerialized = data.toString()
+			console.log('Data received', dataSerialized)
+
+			const responseSerialized = handleMessage(dataSerialized)
+			console.log('Sending response to client', responseSerialized)
+
+			socket.write(responseSerialized)
+			socket.end()
+		}
+		catch (err) {
+			console.error(err)
+		}
+	})
+})
+
+server.on('error', error => {
+	if (error.code === 'EADDRINUSE') {
+		console.error('Could not initialize server. Another instance already running.')
+	}
+	terminate(1)
+})
+
+server.listen(clipboardServerPort, () => {
+	// no need to log enything
+})
 
 // ------------------- clipboard manager ----------------------------------------------------
 
@@ -43,34 +75,4 @@ clipboardManagerProcess.on('exit', code => {
 clipboardManagerProcess.on('close', code => {
 	console.log(`Clipboard manager exited with exit code ${code}`)
 	terminate(1)
-})
-
-
-// ------------------- clipboard server -----------------------------------------------------
-
-const server = net.createServer(socket => {
-	socket.on('data', data => {
-		try {
-			const dataSerialized = data.toString()
-			console.log('Data received', dataSerialized)
-
-			const responseSerialized = handleMessage(dataSerialized)
-			console.log('Sending response to client', responseSerialized)
-
-			socket.write(responseSerialized)
-			socket.end()
-		}
-		catch (err) {
-			console.error(err)
-		}
-	})
-})
-
-server.on('error', err => {
-	console.error('Could not initialize server.', err)
-	terminate(1)
-})
-
-server.listen(clipboardServerPort, () => {
-	// no need to log enything
 })

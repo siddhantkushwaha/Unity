@@ -1,5 +1,6 @@
 const http = require('http')
 const prompt = require('prompt-sync')({ sigint: true })
+const { terminate } = require('./util')
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
 
 const cliServerPort = 1627
@@ -82,108 +83,93 @@ const server = http.createServer((request, response) => {
     }
 })
 
-const startServer = (port) => {
-    return new Promise((resolve, reject) => {
-        server.listen(port)
-            .on('listening', listener => {
-                resolve(listener)
-            })
-            .on('error', error => {
-                reject(error)
-            })
-    })
-}
+server.on('error', error => {
+    if (error.code === 'EADDRINUSE') {
+        console.log('Another Unity shell alredy active. Please close that session or reuse.')
+    }
+    else {
+        console.log('Some error occured.')
+    }
+    terminate(0)
+})
 
-const terminate = (code) => {
-    process.exit(code)
-}
+server.listen(cliServerPort, () => {
+    if (process.argv.length > 2) {
+        const arg1 = process.argv[2]
+        const command = arg1.toLowerCase()
+        switch (command) {
+            case 'login':
 
-startServer(cliServerPort)
-    .then(_listener => {
-        if (process.argv.length > 2) {
-            const arg1 = process.argv[2]
-            const command = arg1.toLowerCase()
-            switch (command) {
-                case 'login':
+                const email = prompt('Enter an email: ').trim()
+                sendLinkForLoginAndWait(email)
 
-                    const email = prompt('Enter an email: ').trim()
-                    sendLinkForLoginAndWait(email)
+                break;
+            case 'list':
 
-                    break;
-                case 'list':
+                verifyLoggedIn()
+                    .then(user => {
 
-                    verifyLoggedIn()
-                        .then(user => {
+                    })
+                    .catch(error => {
+                        console.log('Cannot start clipboard management without loggin in.')
+                    })
+                    .finally(() => {
+                        terminate(0)
+                    })
 
-                        })
-                        .catch(error => {
-                            console.log('Cannot start clipboard management without loggin in.')
-                        })
-                        .finally(() => {
-                            terminate(0)
-                        })
+                break;
+            case 'select':
 
-                    break;
-                case 'select':
+                verifyLoggedIn()
+                    .then(user => {
 
-                    verifyLoggedIn()
-                        .then(user => {
+                    })
+                    .catch(error => {
+                        console.log('Cannot start clipboard management without loggin in.')
+                    })
+                    .finally(() => {
+                        terminate(0)
+                    })
 
-                        })
-                        .catch(error => {
-                            console.log('Cannot start clipboard management without loggin in.')
-                        })
-                        .finally(() => {
-                            terminate(0)
-                        })
+                break;
+            case 'start':
 
-                    break;
-                case 'start':
+                verifyLoggedIn()
+                    .then(user => {
 
-                    verifyLoggedIn()
-                        .then(user => {
+                    })
+                    .catch(error => {
+                        console.log('Cannot start clipboard management without loggin in.')
+                    })
+                    .finally(() => {
+                        terminate(0)
+                    })
 
-                        })
-                        .catch(error => {
-                            console.log('Cannot start clipboard management without loggin in.')
-                        })
-                        .finally(() => {
-                            terminate(0)
-                        })
+                break;
+            case 'stop':
 
-                    break;
-                case 'stop':
+                // stop clipboard management services
+                terminate(0)
 
-                    // stop clipboard management services
-                    terminate(0)
+                break;
+            case 'help':
 
-                    break;
-                case 'help':
+                showIntro()
+                terminate(0)
 
-                    showIntro()
-                    terminate(0)
-
-                    break;
-                default:
-                    console.error('Invalid command.')
-                    showIntro()
-                    terminate(0)
-                    break;
-            }
+                break;
+            default:
+                console.error('Invalid command.')
+                showIntro()
+                terminate(0)
+                break;
         }
-        else {
-            showIntro()
-            terminate(0)
-        }
-    })
-    .catch(error => {
-        if (error.code === 'EADDRINUSE') {
-            console.log('Another Unity shell alredy active. Please close that session or reuse.')
-        }
-        else {
-            console.log('Some error occured.')
-        }
-    })
+    }
+    else {
+        showIntro()
+        terminate(0)
+    }
+})
 
 setTimeout(() => {
 
