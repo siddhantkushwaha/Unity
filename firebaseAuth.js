@@ -3,6 +3,7 @@ const fs = require('fs')
 const firebase = require('firebase/app')
 const firebaseauth = require('firebase/auth')
 const credentials = require('./config/firebaseConfig.json')
+const { cliServerPort } = require('./util')
 
 firebase.initializeApp(credentials)
 
@@ -64,7 +65,7 @@ const loadUser = () => {
 const signInWithLink = (email) => {
     return new Promise((resolve, reject) => {
         var actionCodeSettings = {
-            url: 'http://localhost:1627/signin/',
+            url: `http://localhost:${cliServerPort}/signin/`,
             handleCodeInApp: true
         }
         firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)

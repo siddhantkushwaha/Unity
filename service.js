@@ -1,12 +1,9 @@
 const fs = require('fs')
 const net = require('net')
 
-const { terminate } = require('./util')
+const { terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
 const { spawn } = require('child_process')
 const { handleMessage } = require('./requestHandler')
-
-const clipboardManagerPort = 1625
-const clipboardServerPort = 1626
 
 // ------------------- clipboard server -----------------------------------------------------
 

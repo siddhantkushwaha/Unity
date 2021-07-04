@@ -2,12 +2,10 @@ const fs = require('fs')
 const http = require('http')
 const prompt = require('prompt-sync')({ sigint: true })
 
-const { terminate } = require('./util')
 const { spawn } = require('child_process')
 const { sendMessage } = require('./client')
+const { terminate, cliServerPort } = require('./util')
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
-
-const cliServerPort = 1627
 
 let emailToLogin = null
 let isVerificationLinkReceived = false
