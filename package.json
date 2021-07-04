@@ -1,14 +1,21 @@
 {
-  "name": "unity",
-  "version": "1.0.0",
-  "description": "Clipboard superpowers.",
-  "author": "Siddhant Kushwaha",
-  "license": "MIT",
-  "dependencies": {
-    "firebase": "^8.7.0",
-    "prompt-sync": "^4.2.0"
-  },
-  "pkg": {
-    "outputPath": "bin"
-  }
+	"name": "unity",
+	"version": "1.0.0",
+	"description": "Clipboard superpowers.",
+	"author": "Siddhant Kushwaha",
+	"license": "MIT",
+	"dependencies": {
+		"firebase": "^8.7.0",
+		"prompt-sync": "^4.2.0"
+	},
+	"bin": "cli.js",
+	"pkg": {
+		"scripts": "service.js",
+		"targets": [
+			"node12-linux-x64",
+			"node12-macos-x64",
+			"node12-win-x64"
+		],
+		"outputPath": "bin"
+	}
 }

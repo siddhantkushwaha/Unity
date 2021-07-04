@@ -33,10 +33,12 @@ const server = net.createServer(socket => {
 })
 
 server.on('error', error => {
+	let exitCode = 1
 	if (error.code === 'EADDRINUSE') {
 		console.error('Could not initialize server. Another instance already running.')
+		exitCode = 2
 	}
-	terminate(1)
+	terminate(exitCode)
 })
 
 server.listen(clipboardServerPort, () => {

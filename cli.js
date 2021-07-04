@@ -158,12 +158,18 @@ server.listen(cliServerPort, () => {
                         })
 
                         service.on('exit', code => {
-                            console.log(`Unity server exited with exit code ${code}`)
+                            if (code === 2)
+                                console.log('Service already running.')
+                            else
+                                console.log(`Service exited with exit code ${code}`)
                             terminate(1)
                         })
 
                         service.on('close', code => {
-                            console.log(`Unity server exited with exit code ${code}`)
+                            if (code === 2)
+                                console.log('Service already running.')
+                            else
+                                console.log(`Service exited with exit code ${code}`)
                             terminate(1)
                         })
 
