@@ -1,6 +1,8 @@
 const http = require('http')
 const prompt = require('prompt-sync')({ sigint: true })
-const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseClient')
+const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
+
+const cliServerPort = 1627
 
 let emailToLogin = null
 let isVerificationLinkReceived = false
@@ -97,7 +99,7 @@ const terminate = () => {
     process.exit(0)
 }
 
-startServer(1627)
+startServer(cliServerPort)
     .then(_listener => {
         if (process.argv.length > 2) {
             const arg1 = process.argv[2]
