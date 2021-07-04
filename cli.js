@@ -2,6 +2,7 @@ const fs = require('fs')
 const http = require('http')
 const { terminate } = require('./util')
 const { spawn } = require('child_process')
+const { servicePath } = require('./service.js')
 const prompt = require('prompt-sync')({ sigint: true })
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
 
@@ -138,7 +139,7 @@ server.listen(cliServerPort, () => {
                     .then(user => {
                         const service = spawn(
                             "node",
-                            ["service.js"],
+                            [servicePath()],
                             {
                                 stdio: [
                                     'ignore',

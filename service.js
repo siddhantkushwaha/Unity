@@ -7,6 +7,14 @@ const { handleMessage } = require('./requestHandler')
 const clipboardManagerPort = 1625
 const clipboardServerPort = 1626
 
+// ------------------- exports --------------------------------------------------------------
+
+const servicePath = () => {
+	return __filename
+}
+
+module.exports = { servicePath }
+
 // ------------------- clipboard server -----------------------------------------------------
 
 const server = net.createServer(socket => {
