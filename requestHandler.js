@@ -1,13 +1,11 @@
 const handleMessage = data => {
-    const jsonData = JSON.parse(data)
-
-    // consume json data, send response
+    
+    // consume json data
 
     const response = {
         'status': 0,
     }
-    const responseSerialized = JSON.stringify(response)
-    return responseSerialized
+    return response
 }
 
 module.exports = { handleMessage }

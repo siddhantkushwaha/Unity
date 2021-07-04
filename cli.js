@@ -1,9 +1,10 @@
 const fs = require('fs')
 const http = require('http')
+const prompt = require('prompt-sync')({ sigint: true })
+
 const { terminate } = require('./util')
 const { spawn } = require('child_process')
-const { servicePath } = require('./service.js')
-const prompt = require('prompt-sync')({ sigint: true })
+const { sendMessage } = require('./client')
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
 
 const cliServerPort = 1627
@@ -139,7 +140,7 @@ server.listen(cliServerPort, () => {
                     .then(user => {
                         const service = spawn(
                             "node",
-                            [servicePath()],
+                            [`${__dirname}/service.js`],
                             {
                                 stdio: [
                                     'ignore',
@@ -191,8 +192,17 @@ server.listen(cliServerPort, () => {
                 break;
             case 'stop':
 
-                // stop clipboard management services
-                terminate(0)
+                sendMessage(1626, { type: 'command', arg: 'stop' })
+                    .then(res => {
+                        if (res.status === 0) {
+                            console.log('Unity service was killed.')
+                        }
+                        terminate(0)
+                    })
+                    .catch(err => {
+                        console.log('Error occured while try to stop service.')
+                        terminate(0)
+                    })
 
                 break;
             case 'help':

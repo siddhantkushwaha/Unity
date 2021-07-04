@@ -2,9 +2,10 @@ const net = require('net');
 
 const sendMessage = (port, message) => {
     return new Promise((resolve, reject) => {
+
         const client = net.createConnection(port, () => {
             try {
-                console.log('Sending message', message)
+               
                 const messageSerialized = JSON.stringify(message)
                 client.write(messageSerialized)
             }
@@ -20,15 +21,15 @@ const sendMessage = (port, message) => {
                 const response = data.toString()
                 const responseUnserialized = JSON.parse(response)
 
-                console.log('Response received', responseUnserialized)
                 client.end()
 
-                resolve(response)
+                resolve(responseUnserialized)
             }
             catch (err) {
                 reject(err)
             }
         })
+        
     })
 }
 

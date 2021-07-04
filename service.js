@@ -1,5 +1,6 @@
 const fs = require('fs')
 const net = require('net')
+
 const { terminate } = require('./util')
 const { spawn } = require('child_process')
 const { handleMessage } = require('./requestHandler')
@@ -7,27 +8,26 @@ const { handleMessage } = require('./requestHandler')
 const clipboardManagerPort = 1625
 const clipboardServerPort = 1626
 
-// ------------------- exports --------------------------------------------------------------
-
-const servicePath = () => {
-	return __filename
-}
-
-module.exports = { servicePath }
-
 // ------------------- clipboard server -----------------------------------------------------
 
 const server = net.createServer(socket => {
-	socket.on('data', data => {
+	socket.on('data', dataBuffer => {
 		try {
-			const dataSerialized = data.toString()
-			console.log('Data received', dataSerialized)
+			const dataSerialized = dataBuffer.toString()
+			const data = JSON.parse(dataSerialized)
+			console.log('Data received', data)
 
-			const responseSerialized = handleMessage(dataSerialized)
-			console.log('Sending response to client', responseSerialized)
+			const response = handleMessage(data)
+			console.log('Sending response to client', response)
 
+			const responseSerialized = JSON.stringify(response)
 			socket.write(responseSerialized)
 			socket.end()
+
+			//  this should main thread and all child processes
+			if (data.type === 'command' && data.arg === 'stop') {
+				terminate(0)
+			}
 		}
 		catch (err) {
 			console.error(err)
