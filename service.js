@@ -8,9 +8,9 @@ const clipboardServerPort = 1626
 
 // ------------------- utility functions ----------------------------------------------------
 
-const terminate = () => {
+const terminate = (code) => {
 	// killing main process should kill everything
-	process.exit(0)
+	process.exit(code)
 }
 
 // ------------------- clipboard manager ----------------------------------------------------
@@ -32,17 +32,17 @@ clipboardManagerProcess.on('error', error => {
 	if (error.code === 'ENOENT') {
 		console.log('Could not find Clipboard Manager binary.')
 	}
-	terminate()
+	terminate(1)
 })
 
 clipboardManagerProcess.on('exit', code => {
 	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate()
+	terminate(1)
 })
 
 clipboardManagerProcess.on('close', code => {
 	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate()
+	terminate(1)
 })
 
 
@@ -68,9 +68,9 @@ const server = net.createServer(socket => {
 
 server.on('error', err => {
 	console.error('Could not initialize server.', err)
-	terminate()
+	terminate(1)
 })
 
 server.listen(clipboardServerPort, () => {
-	console.log('Unity server listenting on', server.address().port);
+	// no need to log enything
 })

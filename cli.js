@@ -27,13 +27,13 @@ const sendLinkForLoginAndWait = email => {
             setTimeout(() => {
                 if (!isVerificationLinkReceived) {
                     console.log('It has been 5 minutes, timing out.')
-                    terminate()
+                    terminate(0)
                 }
             }, 5 * 60 * 1000)
         })
         .catch(error => {
             console.log('Could not send link for email verification.', error.message)
-            terminate()
+            terminate(0)
         })
 }
 
@@ -68,11 +68,11 @@ const server = http.createServer((request, response) => {
         loginWithEmailAndLink(emailToLogin, fullUrl)
             .then(credentials => {
                 console.log(`Login successfull with email ${emailToLogin}.`)
-                terminate()
+                terminate(0)
             })
             .catch(error => {
                 console.log('Login failed.', error.message)
-                terminate()
+                terminate(0)
             })
     }
     else {
@@ -94,9 +94,8 @@ const startServer = (port) => {
     })
 }
 
-const terminate = () => {
-    server.close()
-    process.exit(0)
+const terminate = (code) => {
+    process.exit(code)
 }
 
 startServer(cliServerPort)
@@ -121,7 +120,7 @@ startServer(cliServerPort)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            terminate()
+                            terminate(0)
                         })
 
                     break;
@@ -135,7 +134,7 @@ startServer(cliServerPort)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            terminate()
+                            terminate(0)
                         })
 
                     break;
@@ -149,32 +148,32 @@ startServer(cliServerPort)
                             console.log('Cannot start clipboard management without loggin in.')
                         })
                         .finally(() => {
-                            terminate()
+                            terminate(0)
                         })
 
                     break;
                 case 'stop':
 
                     // stop clipboard management services
-                    terminate()
+                    terminate(0)
 
                     break;
                 case 'help':
 
                     showIntro()
-                    terminate()
+                    terminate(0)
 
                     break;
                 default:
                     console.error('Invalid command.')
                     showIntro()
-                    terminate()
+                    terminate(0)
                     break;
             }
         }
         else {
             showIntro()
-            terminate()
+            terminate(0)
         }
     })
     .catch(error => {
@@ -189,6 +188,6 @@ startServer(cliServerPort)
 setTimeout(() => {
 
     console.log('\n\nTiming out this session.')
-    terminate()
+    terminate(0)
 
 }, 10 * 60 * 1000)
