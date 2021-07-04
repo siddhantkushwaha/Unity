@@ -1,6 +1,8 @@
+const fs = require('fs')
 const http = require('http')
-const prompt = require('prompt-sync')({ sigint: true })
 const { terminate } = require('./util')
+const { spawn } = require('child_process')
+const prompt = require('prompt-sync')({ sigint: true })
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
 
 const cliServerPort = 1627
@@ -45,7 +47,6 @@ const verifyLoggedIn = () => {
                 resolve(user)
             })
             .catch(error => {
-                console.log(error.message)
                 reject(error)
             })
     })
@@ -109,13 +110,13 @@ server.listen(cliServerPort, () => {
                 verifyLoggedIn()
                     .then(user => {
 
+                        terminate(0)
                     })
                     .catch(error => {
                         console.log('Cannot start clipboard management without loggin in.')
-                    })
-                    .finally(() => {
                         terminate(0)
                     })
+
 
                 break;
             case 'select':
@@ -123,11 +124,10 @@ server.listen(cliServerPort, () => {
                 verifyLoggedIn()
                     .then(user => {
 
+                        terminate(0)
                     })
                     .catch(error => {
                         console.log('Cannot start clipboard management without loggin in.')
-                    })
-                    .finally(() => {
                         terminate(0)
                     })
 
@@ -136,12 +136,54 @@ server.listen(cliServerPort, () => {
 
                 verifyLoggedIn()
                     .then(user => {
+                        const service = spawn(
+                            "node",
+                            ["service.js"],
+                            {
+                                stdio: [
+                                    'ignore',
+                                    fs.openSync('./logs/UnityServer.log', 'a'),
+                                    fs.openSync('./logs/UnityServer.log', 'a')
+                                ],
+                                detached: true,
+                                windowsHide: true
+                            }
+                        )
 
+                        service.on('error', error => {
+                            if (error.code === 'ENOENT') {
+                                console.log('Could not find Unity Server script.')
+                            }
+                            terminate(1)
+                        })
+
+                        service.on('exit', code => {
+                            console.log(`Unity server exited with exit code ${code}`)
+                            terminate(1)
+                        })
+
+                        service.on('close', code => {
+                            console.log(`Unity server exited with exit code ${code}`)
+                            terminate(1)
+                        })
+
+                        // https://nodejs.org/api/child_process.html#child_process_options_detached
+                        // By default, the parent will wait for the detached child to exit. 
+                        // To prevent the parent from waiting for a given subprocess to exit, use the subprocess.unref()
+                        service.unref()
+
+                        // TODO - validate if service came up
+
+                        // time out if everything went well
+                        setTimeout(() => {
+                            console.log('Unity service was started.')
+                            terminate(0)
+                        }, 5 * 1000)
                     })
                     .catch(error => {
-                        console.log('Cannot start clipboard management without loggin in.')
-                    })
-                    .finally(() => {
+                        console.log(error)
+                        console.log('Cannot start service without loggin in.')
+
                         terminate(0)
                     })
 
@@ -159,9 +201,11 @@ server.listen(cliServerPort, () => {
 
                 break;
             default:
+
                 console.error('Invalid command.')
                 showIntro()
                 terminate(0)
+
                 break;
         }
     }

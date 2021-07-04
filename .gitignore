@@ -1,5 +1,6 @@
 node_modules/
 logs/
+bin/
 *.json
 !package.json
 !package-lock.json

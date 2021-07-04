@@ -2,8 +2,6 @@
   "name": "unity",
   "version": "1.0.0",
   "description": "Clipboard superpowers.",
-  "main": "main",
-  "scripts": {},
   "author": "Siddhant Kushwaha",
   "license": "MIT",
   "dependencies": {

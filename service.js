@@ -7,13 +7,6 @@ const { handleMessage } = require('./requestHandler')
 const clipboardManagerPort = 1625
 const clipboardServerPort = 1626
 
-// ------------------- utility functions ----------------------------------------------------
-
-const terminate = (code) => {
-	// killing main process should kill everything
-	process.exit(code)
-}
-
 // ------------------- clipboard server -----------------------------------------------------
 
 const server = net.createServer(socket => {
@@ -48,15 +41,16 @@ server.listen(clipboardServerPort, () => {
 // ------------------- clipboard manager ----------------------------------------------------
 
 const clipboardManagerProcess = spawn(
-	"D:\\Projects\\ClipboardUtilityWindows\\ClipboardManagerWin\\bin\\Release\\ClipboardManagerWindows.exe",
-	[clipboardManagerPort],
+	"D:\\Projects\\ClipboardUtilityWindows\\ClipboardManagerWin\\bin\\Release\\ClipboardManager.exe",
+	[clipboardManagerPort, clipboardServerPort],
 	{
 		stdio: [
 			'ignore',
 			fs.openSync('./logs/ClipboardManager.log', 'a'),
 			fs.openSync('./logs/ClipboardManager.log', 'a')
 		],
-		detached: false
+		detached: false,
+		windowsHide: true
 	}
 )
 
