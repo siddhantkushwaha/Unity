@@ -5,7 +5,7 @@ const sendMessage = (port, message) => {
 
         const serverSocket = net.createConnection(port, () => {
             try {
-               
+
                 const messageSerialized = JSON.stringify(message)
                 serverSocket.write(messageSerialized)
             }
@@ -31,14 +31,20 @@ const sendMessage = (port, message) => {
         })
 
         serverSocket.on('close', (had_error) => {
-            if (had_error){
-                console.log('Socket closed because of error.')
+            if (had_error) {
+                reject(Error('Socket closed because of error.'))
+            }
+            else {
+                resolve(null)
             }
         })
-        
+
         serverSocket.on('end', (had_error) => {
-            if (had_error){
-                console.log('Socket closed because of error.')
+            if (had_error) {
+                reject(Error('Socket closed because of error.'))
+            }
+            else {
+                resolve(null)
             }
         })
     })
