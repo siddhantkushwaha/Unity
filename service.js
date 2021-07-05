@@ -7,8 +7,8 @@ const { handleMessage } = require('./requestHandler')
 
 // ------------------- clipboard server -----------------------------------------------------
 
-const server = net.createServer(socket => {
-	socket.on('data', dataBuffer => {
+const server = net.createServer(clientSocket => {
+	clientSocket.on('data', dataBuffer => {
 		try {
 			const dataSerialized = dataBuffer.toString()
 			const data = JSON.parse(dataSerialized)
@@ -18,8 +18,8 @@ const server = net.createServer(socket => {
 			console.log('Sending response to client', response)
 
 			const responseSerialized = JSON.stringify(response)
-			socket.write(responseSerialized)
-			socket.end()
+			clientSocket.write(responseSerialized)
+			clientSocket.end()
 
 			//  this should main thread and all child processes
 			if (data.type === 'command' && data.arg === 'stop') {
@@ -28,6 +28,18 @@ const server = net.createServer(socket => {
 		}
 		catch (err) {
 			console.error(err)
+		}
+	})
+
+	clientSocket.on('close', (had_error) => {
+		if (had_error){
+			console.log('Socket closed because of error.')
+		}
+	})
+	
+	clientSocket.on('end', (had_error) => {
+		if (had_error){
+			console.log('Socket closed because of error.')
 		}
 	})
 })

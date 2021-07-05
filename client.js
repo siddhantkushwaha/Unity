@@ -3,11 +3,11 @@ const net = require('net');
 const sendMessage = (port, message) => {
     return new Promise((resolve, reject) => {
 
-        const client = net.createConnection(port, () => {
+        const serverSocket = net.createConnection(port, () => {
             try {
                
                 const messageSerialized = JSON.stringify(message)
-                client.write(messageSerialized)
+                serverSocket.write(messageSerialized)
             }
             catch (err) {
                 reject(err)
@@ -16,12 +16,12 @@ const sendMessage = (port, message) => {
             reject(err)
         })
 
-        client.on('data', (data) => {
+        serverSocket.on('data', (data) => {
             try {
                 const response = data.toString()
                 const responseUnserialized = JSON.parse(response)
 
-                client.end()
+                serverSocket.end()
 
                 resolve(responseUnserialized)
             }
@@ -29,7 +29,18 @@ const sendMessage = (port, message) => {
                 reject(err)
             }
         })
+
+        serverSocket.on('close', (had_error) => {
+            if (had_error){
+                console.log('Socket closed because of error.')
+            }
+        })
         
+        serverSocket.on('end', (had_error) => {
+            if (had_error){
+                console.log('Socket closed because of error.')
+            }
+        })
     })
 }
 
