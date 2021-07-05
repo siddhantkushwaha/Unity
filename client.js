@@ -47,6 +47,12 @@ const sendMessage = (port, message) => {
                 resolve(null)
             }
         })
+
+        setTimeout(() => {
+            const message = 'Timed out.'
+            serverSocket.destroy(message)
+            reject(Error(message))
+        }, 5 * 1000)
     })
 }
 
