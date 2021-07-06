@@ -31,21 +31,21 @@ const server = net.createServer(clientSocket => {
 		}
 	})
 
-	clientSocket.on('close', (had_error) => {
+	var closed = false
+	const onClose = had_error => {
+		closed = true
 		if (had_error) {
 			console.log('Socket closed because of error.')
 		}
-	})
-
-	clientSocket.on('end', (had_error) => {
-		if (had_error) {
-			console.log('Socket closed because of error.')
-		}
-	})
+	}
+	clientSocket.on('close', had_error => onClose(had_error))
+	clientSocket.on('end', had_error => onClose(had_error))
 
 	setTimeout(() => {
-		console.log('Timing out.')
-		clientSocket.destroy('Timed out.')
+		if (!closed) {
+			console.log('Timing out.')
+			clientSocket.destroy('Timed out.')
+		}
 	}, 5 * 1000)
 })
 

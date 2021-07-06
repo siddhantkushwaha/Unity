@@ -2,7 +2,6 @@ const net = require('net');
 
 const sendMessage = (port, message) => {
     return new Promise((resolve, reject) => {
-
         const serverSocket = net.createConnection(port, () => {
             try {
 
@@ -30,28 +29,25 @@ const sendMessage = (port, message) => {
             }
         })
 
-        serverSocket.on('close', (had_error) => {
+        var closed = false
+        const onClose = had_error => {
+            closed = true
             if (had_error) {
                 reject(Error('Socket closed because of error.'))
             }
             else {
                 resolve(null)
             }
-        })
-
-        serverSocket.on('end', (had_error) => {
-            if (had_error) {
-                reject(Error('Socket closed because of error.'))
-            }
-            else {
-                resolve(null)
-            }
-        })
+        }
+        serverSocket.on('close', had_error => onClose(had_error))
+        serverSocket.on('end', had_error => onClose(had_error))
 
         setTimeout(() => {
-            const message = 'Timed out.'
-            serverSocket.destroy(message)
-            reject(Error(message))
+            if (!closed) {
+                const message = 'Timed out.'
+                serverSocket.destroy(message)
+                reject(Error(message))
+            }
         }, 5 * 1000)
     })
 }
