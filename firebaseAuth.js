@@ -2,6 +2,7 @@ const os = require('os')
 const fs = require('fs')
 const firebase = require('firebase/app')
 const firebaseauth = require('firebase/auth')
+
 const credentials = require('./config/firebaseConfig.json')
 const { cliServerPort } = require('./util')
 
@@ -62,6 +63,10 @@ const loadUser = () => {
     })
 }
 
+const getUser = () => {
+    return firebase.auth().currentUser
+}
+
 const signInWithLink = (email) => {
     return new Promise((resolve, reject) => {
         var actionCodeSettings = {
@@ -97,4 +102,4 @@ const loginWithEmailAndLink = (email, link) => {
     })
 }
 
-module.exports = { loadUser, signInWithLink, loginWithEmailAndLink }
+module.exports = { getUser, loadUser, signInWithLink, loginWithEmailAndLink }

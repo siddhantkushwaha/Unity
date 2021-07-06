@@ -1,9 +1,52 @@
 const fs = require('fs')
 const net = require('net')
-
-const { terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
 const { spawn } = require('child_process')
+
+const { sendMessage } = require('./client')
 const { handleMessage } = require('./requestHandler')
+const { listenToClipboard } = require('./firebaseDb')
+const { loadUser, getUser } = require('./firebaseAuth')
+const { getUniqueId, terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
+
+// ------------------------------------------------------------------------------------------
+
+const serviceId = getUniqueId()
+
+var firstUpdate = true
+const onClipboardValueChange = snap => {
+	if (firstUpdate) {
+		firstUpdate = false
+		return
+	}
+
+	let content = snap.val()
+	if (content.serviceId === serviceId) {
+		return
+	}
+
+	console.log("Cloud clipboard content updated.")
+	console.log(content)
+
+	sendMessage(clipboardManagerPort, content.updateMessage)
+		.then(response => {
+			console.log('Response from clipboard manager', response)
+		})
+		.catch(err => {
+			console.log('Error while sending message to clipboard maanger.')
+		})
+}
+
+loadUser()
+	.then(_ => {
+
+		// ------------------- firebase db clipboard changes --------------------------------
+		listenToClipboard(getUser().uid, onClipboardValueChange)
+
+	})
+	.catch(err => {
+		console.log('User not loaded.', err)
+		terminate(1)
+	})
 
 // ------------------- clipboard server -----------------------------------------------------
 
@@ -14,7 +57,7 @@ const server = net.createServer(clientSocket => {
 			const data = JSON.parse(dataSerialized)
 			console.log('Data received', data)
 
-			const response = handleMessage(data)
+			const response = handleMessage(serviceId, data)
 			console.log('Sending response to client', response)
 
 			const responseSerialized = JSON.stringify(response)
@@ -64,33 +107,33 @@ server.listen(clipboardServerPort, () => {
 
 // ------------------- clipboard manager ----------------------------------------------------
 
-const clipboardManagerProcess = spawn(
-	"D:\\Projects\\ClipboardUtilityWindows\\ClipboardManagerWin\\bin\\Release\\ClipboardManager.exe",
-	[clipboardManagerPort, clipboardServerPort],
-	{
-		stdio: [
-			'ignore',
-			fs.openSync('./logs/ClipboardManager.log', 'a'),
-			fs.openSync('./logs/ClipboardManager.log', 'a')
-		],
-		detached: false,
-		windowsHide: true
-	}
-)
+// const clipboardManagerProcess = spawn(
+// 	"D:\\Projects\\ClipboardUtilityWindows\\ClipboardManagerWin\\bin\\Release\\ClipboardManager.exe",
+// 	[clipboardManagerPort, clipboardServerPort],
+// 	{
+// 		stdio: [
+// 			'ignore',
+// 			fs.openSync('./logs/ClipboardManager.log', 'a'),
+// 			fs.openSync('./logs/ClipboardManager.log', 'a')
+// 		],
+// 		detached: false,
+// 		windowsHide: true
+// 	}
+// )
 
-clipboardManagerProcess.on('error', error => {
-	if (error.code === 'ENOENT') {
-		console.log('Could not find Clipboard Manager binary.')
-	}
-	terminate(1)
-})
+// clipboardManagerProcess.on('error', error => {
+// 	if (error.code === 'ENOENT') {
+// 		console.log('Could not find Clipboard Manager binary.')
+// 	}
+// 	terminate(1)
+// })
 
-clipboardManagerProcess.on('exit', code => {
-	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate(1)
-})
+// clipboardManagerProcess.on('exit', code => {
+// 	console.log(`Clipboard manager exited with exit code ${code}`)
+// 	terminate(1)
+// })
 
-clipboardManagerProcess.on('close', code => {
-	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate(1)
-})
+// clipboardManagerProcess.on('close', code => {
+// 	console.log(`Clipboard manager exited with exit code ${code}`)
+// 	terminate(1)
+// })
