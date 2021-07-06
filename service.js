@@ -27,7 +27,12 @@ const onClipboardValueChange = snap => {
 	console.log("Cloud clipboard content updated.")
 	console.log(content)
 
-	sendMessage(clipboardManagerPort, content.updateMessage)
+	let updateMessage = {
+		messageType: 'updateClipboard',
+		updateMessage: content.updateMessage
+	}
+
+	sendMessage(clipboardManagerPort, updateMessage)
 		.then(response => {
 			console.log('Response from clipboard manager', response)
 		})
