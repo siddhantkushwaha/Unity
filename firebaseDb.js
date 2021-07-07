@@ -17,7 +17,6 @@ const addToClipboard = async (serviceId, userId, update) => {
         itemId = update.id
     }
     catch (err) {
-        itemId = false
         console.error(err)
     }
     return itemId

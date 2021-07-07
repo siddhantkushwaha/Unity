@@ -30,14 +30,13 @@ const startService = async () => {
 
 		const server = net.createServer(clientSocket => {
 
-			clientSocket.on('data', dataBuffer => {
-
+			clientSocket.on('data', async (dataBuffer) => {
 				try {
 					const dataSerialized = dataBuffer.toString()
 					const data = JSON.parse(dataSerialized)
 					console.log('Data received', data)
 
-					const response = handleMessage(serviceId, data)
+					const response = await handleMessage(serviceId, data)
 					console.log('Sending response to client', response)
 
 					const responseSerialized = JSON.stringify(response)
@@ -53,7 +52,6 @@ const startService = async () => {
 					console.log('Error while processing request.')
 					console.error(err)
 				}
-
 			})
 
 			var isClientConnectionClosed = false
@@ -127,7 +125,7 @@ const startService = async () => {
 
 		// ------------------- firebase db clipboard changes --------------------------------
 
-		listenToClipboard(getUser().uid, async snap => {
+		listenToClipboard(getUser().uid, async (snap) => {
 			try {
 				if (isFirstCloudUpdate) {
 					isFirstCloudUpdate = false
@@ -168,6 +166,7 @@ const handleError = (err) => {
 
 startService()
 	.then(() => {
+		console.log('Service has started.')
 	})
 	.catch(err => {
 	})
