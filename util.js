@@ -33,21 +33,8 @@ const getOS = () => {
 }
 
 const ensurePath = (path) => {
-    return new Promise((resolve, reject) => {
-        if (!fs.existsSync(path)) {
-            fs.mkdir(path, { 'recursive': true }, error => {
-                if (error) {
-                    reject(error)
-                }
-                else {
-                    resolve(path)
-                }
-            })
-        }
-        else {
-            resolve(path)
-        }
-    })
+    if (!fs.existsSync(path))
+        fs.mkdirSync(path, { 'recursive': true })
 }
 
 const download = (url, dest) => {

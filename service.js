@@ -20,7 +20,7 @@ const startService = async () => {
 		const user = await loadUser()
 		console.log(`User credentials verified for ${user.email}`)
 
-		await ensurePath(logPath)
+		ensurePath(logPath)
 		console.log('Log directory created.')
 
 		await getClipboardManagerBinaries()

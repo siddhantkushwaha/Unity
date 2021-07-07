@@ -191,14 +191,8 @@ server.listen(cliServerPort, () => {
                     .then(_user => {
 
                         ensurePath(logPath)
-                            .then(_path => {
-                                startService()
-                            })
-                            .catch(err => {
-                                console.log(err)
-                                terminate(0)
-                            })
-
+                        startService()
+                            
                     })
                     .catch(_error => {
                         console.log('Cannot start service without loggin in.')
