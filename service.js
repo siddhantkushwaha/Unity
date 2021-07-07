@@ -120,6 +120,8 @@ const startManager = () => {
 	if (getOS() === 'Windows')
 		executablePath += '.exe'
 
+	fs.chmodSync(executablePath, '700')
+
 	const clipboardManagerProcess = spawn(
 		executablePath,
 		[clipboardManagerPort, clipboardServerPort],

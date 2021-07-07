@@ -26,7 +26,6 @@ const getClipboardManagerBinaries = () => {
                 fs.rmdirSync(clipboardManagerPath, { recursive: true })
                 extract(zipPath, { dir: clipboardManagerPath })
                     .then(() => {
-                        fs.chmodSync(clipboardManagerPath, '700')
                         fs.unlinkSync(zipPath)
                         resolve(url)
                     })

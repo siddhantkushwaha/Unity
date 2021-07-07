@@ -9,7 +9,9 @@
 		"firebase": "^8.7.0",
 		"prompt-sync": "^4.2.0"
 	},
-	"bin": "cli.js",
+	"bin": {
+		"unity": "cli.js"
+	},
 	"pkg": {
 		"scripts": "service.js",
 		"targets": [
