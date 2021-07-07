@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 const http = require('http')
 const prompt = require('prompt-sync')({ sigint: true })
 
@@ -137,12 +138,12 @@ server.listen(cliServerPort, () => {
                 const startService = () => {
                     const service = spawn(
                         "node",
-                        [`${__dirname}/service.js`],
+                        [path.join(__dirname, 'service.js')],
                         {
                             stdio: [
                                 'ignore',
-                                fs.openSync(`${logPath}/UnityServer.log`, 'a'),
-                                fs.openSync(`${logPath}/UnityServer.log`, 'a')
+                                fs.openSync(path.join(logPath, 'UnityServer.log'), 'a'),
+                                fs.openSync(path.join(logPath, 'UnityServer.log'), 'a')
                             ],
                             detached: true,
                             windowsHide: true
@@ -156,20 +157,20 @@ server.listen(cliServerPort, () => {
                         terminate(1)
                     })
 
-                    service.on('exit', code => {
+                    const onClose = (code) => {
                         if (code === 2)
                             console.log('Service already running.')
                         else
                             console.log(`Service exited with exit code ${code}`)
                         terminate(1)
+                    }
+
+                    service.on('exit', code => {
+                        onClose(code)
                     })
 
                     service.on('close', code => {
-                        if (code === 2)
-                            console.log('Service already running.')
-                        else
-                            console.log(`Service exited with exit code ${code}`)
-                        terminate(1)
+                        onClose(code)
                     })
 
                     // https://nodejs.org/api/child_process.html#child_process_options_detached

@@ -1,5 +1,6 @@
 const fs = require('fs')
 const net = require('net')
+const path = require('path')
 const { spawn } = require('child_process')
 
 const { sendMessage } = require('./client')
@@ -7,6 +8,7 @@ const { handleMessage } = require('./requestHandler')
 const { listenToClipboard } = require('./firebaseDb')
 const { loadUser, getUser } = require('./firebaseAuth')
 const { getOS, getUniqueId, terminate, clipboardManagerPort, clipboardServerPort, logPath, ensurePath } = require('./util')
+
 
 // ------------------------------------------------------------------------------------------
 
@@ -114,10 +116,9 @@ server.listen(clipboardServerPort, () => {
 
 const startManager = () => {
 
-	let executablePath = `${__dirname}/assets/ClipboardManager/${getOS()}/ClipboardManager`
-	if (getOS() === 'Windows') {
+	let executablePath = path.join(__dirname, 'assets', 'ClipboardManager', getOS(), 'ClipboardManager')
+	if (getOS() === 'Windows')
 		executablePath += '.exe'
-	}
 
 	const clipboardManagerProcess = spawn(
 		executablePath,
@@ -125,26 +126,27 @@ const startManager = () => {
 		{
 			stdio: [
 				'ignore',
-				fs.openSync(`${logPath}/ClipboardManager.log`, 'a'),
-				fs.openSync(`${logPath}/ClipboardManager.log`, 'a')
+				fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a'),
+				fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a')
 			],
 			detached: false,
 			windowsHide: true
 		}
 	)
-	
+
 	clipboardManagerProcess.on('error', error => {
+		console.log(error)
 		if (error.code === 'ENOENT') {
 			console.log('Could not find Clipboard Manager binary.')
 		}
 		terminate(1)
 	})
-	
+
 	clipboardManagerProcess.on('exit', code => {
 		console.log(`Clipboard manager exited with exit code ${code}`)
 		terminate(1)
 	})
-	
+
 	clipboardManagerProcess.on('close', code => {
 		console.log(`Clipboard manager exited with exit code ${code}`)
 		terminate(1)
