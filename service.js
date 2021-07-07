@@ -7,167 +7,167 @@ const { sendMessage } = require('./client')
 const { handleMessage } = require('./requestHandler')
 const { listenToClipboard } = require('./firebaseDb')
 const { loadUser, getUser } = require('./firebaseAuth')
-const { getOS, getUniqueId, terminate, ensurePath, clipboardManagerPort, clipboardServerPort, logPath, projectPath } = require('./util')
 const { getClipboardManagerBinaries } = require('./getClipboardManager')
+const { getOS, getUniqueId, terminate, ensurePath, clipboardManagerPort,
+	clipboardServerPort, logPath, projectPath } = require('./util')
 
-// ------------------------------------------------------------------------------------------
 
 const serviceId = getUniqueId()
+var isFirstCloudUpdate = true
 
-var firstUpdate = true
-const onClipboardValueChange = snap => {
-	if (firstUpdate) {
-		firstUpdate = false
-		return
-	}
+const startService = async () => {
+	try {
+		const user = await loadUser()
+		console.log(`User credentials verified for ${user.email}`)
 
-	let content = snap.val()
-	if (content.serviceId === serviceId) {
-		return
-	}
+		await ensurePath(logPath)
+		console.log('Log directory created.')
 
-	console.log("Cloud clipboard content updated.")
-	console.log(content)
+		await getClipboardManagerBinaries()
+		console.log(`Tools downloaded for ${getOS()}`)
 
-	let updateMessage = {
-		messageType: 'updateClipboard',
-		updateMessage: content.updateMessage
-	}
+		// ------------------- clipboard server -----------------------------------------------------
 
-	sendMessage(clipboardManagerPort, updateMessage)
-		.then(response => {
-			console.log('Response from clipboard manager', response)
+		const server = net.createServer(clientSocket => {
+
+			clientSocket.on('data', dataBuffer => {
+
+				try {
+					const dataSerialized = dataBuffer.toString()
+					const data = JSON.parse(dataSerialized)
+					console.log('Data received', data)
+
+					const response = handleMessage(serviceId, data)
+					console.log('Sending response to client', response)
+
+					const responseSerialized = JSON.stringify(response)
+					clientSocket.write(responseSerialized)
+					clientSocket.end()
+
+					//  this should main thread and all child processes
+					if (data.type === 'command' && data.arg === 'stop') {
+						terminate(0)
+					}
+				}
+				catch (err) {
+					console.log('Error while processing request.')
+					console.error(err)
+				}
+
+			})
+
+			var isClientConnectionClosed = false
+
+			const onClose = had_error => {
+				isClientConnectionClosed = true
+				if (had_error) console.log('Socket closed because of error.')
+			}
+
+			clientSocket.on('close', had_error => onClose(had_error))
+			clientSocket.on('end', had_error => onClose(had_error))
+
+			setTimeout(() => {
+				let timeoutMessage = 'Client connection was timed out.'
+				if (!isClientConnectionClosed) {
+					console.log(timeoutMessage)
+					clientSocket.destroy(timeoutMessage)
+				}
+			}, 5 * 1000)
+
 		})
-		.catch(err => {
-			console.log('Error while sending message to clipboard maanger.')
-		})
-}
 
-loadUser()
-	.then(_ => {
+		server.on('error', err => {
+			handleError(err)
+		})
+
+		server.listen(clipboardServerPort, () => {
+			// no need to log enything
+		})
+
+		server.on('close', () => {
+			const err = new Error('Unity server closed.')
+			handleError(err)
+		})
+
+		// ------------------- clipboard manager ----------------------------------------------------
+
+		let executablePath = path.join(projectPath, 'ClipboardManager', 'ClipboardManager')
+		if (getOS() === 'Windows')
+			executablePath += '.exe'
+
+		fs.chmodSync(executablePath, '700')
+
+		const clipboardManagerProcess = spawn(
+			executablePath,
+			[clipboardManagerPort, clipboardServerPort],
+			{
+				stdio: [
+					'ignore',
+					fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a'),
+					fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a')
+				],
+				detached: false,
+				windowsHide: true
+			}
+		)
+
+		clipboardManagerProcess.on('error', err => {
+			handleError(err)
+		})
+
+		const onClipboardManagerClose = (code) => {
+			let message = `Clipboard manager process exited with code ${code}.`
+			if (code === 1) message = 'Clipboard manager process already active.'
+			const err = new Error(message)
+			handleError(err)
+		}
+
+		clipboardManagerProcess.on('exit', code => onClipboardManagerClose(code))
+		clipboardManagerProcess.on('close', code => onClipboardManagerClose(code))
 
 		// ------------------- firebase db clipboard changes --------------------------------
-		listenToClipboard(getUser().uid, onClipboardValueChange)
 
-	})
-	.catch(err => {
-		console.log('User not loaded.', err)
-		terminate(1)
-	})
+		listenToClipboard(getUser().uid, async snap => {
+			try {
+				if (isFirstCloudUpdate) {
+					isFirstCloudUpdate = false
+					return
+				}
 
-// ------------------- clipboard server -----------------------------------------------------
+				let content = snap.val()
+				if (content.serviceId === serviceId) {
+					return
+				}
 
-const server = net.createServer(clientSocket => {
-	clientSocket.on('data', dataBuffer => {
-		try {
-			const dataSerialized = dataBuffer.toString()
-			const data = JSON.parse(dataSerialized)
-			console.log('Data received', data)
+				console.log("Cloud clipboard content updated.")
+				console.log(content)
 
-			const response = handleMessage(serviceId, data)
-			console.log('Sending response to client', response)
+				let updateMessage = {
+					messageType: 'updateClipboard',
+					updateMessage: content.updateMessage
+				}
 
-			const responseSerialized = JSON.stringify(response)
-			clientSocket.write(responseSerialized)
-			clientSocket.end()
-
-			//  this should main thread and all child processes
-			if (data.type === 'command' && data.arg === 'stop') {
-				terminate(0)
+				const response = await sendMessage(clipboardManagerPort, updateMessage)
+				console.log('Response from clipboard manager', response)
 			}
-		}
-		catch (err) {
-			console.error(err)
-		}
-	})
-
-	var closed = false
-	const onClose = had_error => {
-		closed = true
-		if (had_error) {
-			console.log('Socket closed because of error.')
-		}
+			catch (err) {
+				console.log('Error while processing cloud update.')
+				console.error(err)
+			}
+		})
 	}
-	clientSocket.on('close', had_error => onClose(had_error))
-	clientSocket.on('end', had_error => onClose(had_error))
-
-	setTimeout(() => {
-		if (!closed) {
-			console.log('Timing out.')
-			clientSocket.destroy('Timed out.')
-		}
-	}, 5 * 1000)
-})
-
-server.on('error', error => {
-	let exitCode = 1
-	if (error.code === 'EADDRINUSE') {
-		console.error('Could not initialize server. Another instance already running.')
-		exitCode = 2
+	catch (err) {
+		handleError(err)
 	}
-	terminate(exitCode)
-})
-
-server.listen(clipboardServerPort, () => {
-	// no need to log enything
-})
-
-// ------------------- clipboard manager ----------------------------------------------------
-
-const startManager = () => {
-
-	let executablePath = path.join(projectPath, 'ClipboardManager', 'ClipboardManager')
-	if (getOS() === 'Windows')
-		executablePath += '.exe'
-
-	fs.chmodSync(executablePath, '700')
-
-	const clipboardManagerProcess = spawn(
-		executablePath,
-		[clipboardManagerPort, clipboardServerPort],
-		{
-			stdio: [
-				'ignore',
-				fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a'),
-				fs.openSync(path.join(logPath, 'ClipboardManager.log'), 'a')
-			],
-			detached: false,
-			windowsHide: true
-		}
-	)
-
-	clipboardManagerProcess.on('error', error => {
-		console.log(error)
-		if (error.code === 'ENOENT') {
-			console.log('Could not find Clipboard Manager binary.')
-		}
-		terminate(1)
-	})
-
-	clipboardManagerProcess.on('exit', code => {
-		console.log(`Clipboard manager exited with exit code ${code}`)
-		terminate(1)
-	})
-
-	clipboardManagerProcess.on('close', code => {
-		console.log(`Clipboard manager exited with exit code ${code}`)
-		terminate(1)
-	})
 }
 
-ensurePath(logPath)
-	.then(_path => {
-		getClipboardManagerBinaries()
-			.then((_url) => {
-				startManager()
-			})
-			.catch(err => {
-				console.log(err)
-				terminate(1)
-			})
+const handleError = (err) => {
+	console.log(err.message, 'Exiting.')
+	terminate(1)
+}
+
+startService()
+	.then(() => {
 	})
 	.catch(err => {
-		console.log(err)
-		console.log("Failed to create path for logs.")
-		terminate(1)
 	})

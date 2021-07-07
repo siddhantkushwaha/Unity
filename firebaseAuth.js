@@ -35,9 +35,18 @@ const loadUser = () => {
                 const user = new firebase.User(dataUnserialized, dataUnserialized['stsTokenManager'], dataUnserialized)
 
                 firebase.auth().updateCurrentUser(user)
-                user.reload()
-
-                resolve(user)
+                    .then(() => {
+                        user.reload()
+                            .then(() => {
+                                resolve(user)
+                            })
+                            .catch(err => {
+                                reject(err)
+                            })
+                    })
+                    .catch(err => {
+                        reject(err)
+                    })
             }
             catch (error) {
                 reject(error)

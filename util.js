@@ -64,7 +64,7 @@ const download = (url, dest) => {
                 })
             })
         }).on('error', (err) => {
-            fs.unlink(dest)
+            fs.unlinkSync(dest)
             reject(err)
         })
     })
