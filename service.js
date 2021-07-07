@@ -43,7 +43,8 @@ const startService = async () => {
 					clientSocket.write(responseSerialized)
 					clientSocket.end()
 
-					//  this should main thread and all child processes
+					// this should kill main thread and all child processes
+					// TODO - not killing spawned process on MacOS
 					if (data.type === 'command' && data.arg === 'stop') {
 						terminate(0)
 					}
