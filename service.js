@@ -6,7 +6,7 @@ const { sendMessage } = require('./client')
 const { handleMessage } = require('./requestHandler')
 const { listenToClipboard } = require('./firebaseDb')
 const { loadUser, getUser } = require('./firebaseAuth')
-const { getOS, getUniqueId, terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
+const { getOS, getUniqueId, terminate, clipboardManagerPort, clipboardServerPort, logPath, ensurePath } = require('./util')
 
 // ------------------------------------------------------------------------------------------
 
@@ -112,38 +112,51 @@ server.listen(clipboardServerPort, () => {
 
 // ------------------- clipboard manager ----------------------------------------------------
 
-let executablePath = `${__dirname}/assets/ClipboardManager/${getOS()}/ClipboardManager`
-if (getOS() === 'Windows') {
-	executablePath += '.exe'
+const startManager = () => {
+
+	let executablePath = `${__dirname}/assets/ClipboardManager/${getOS()}/ClipboardManager`
+	if (getOS() === 'Windows') {
+		executablePath += '.exe'
+	}
+
+	const clipboardManagerProcess = spawn(
+		executablePath,
+		[clipboardManagerPort, clipboardServerPort],
+		{
+			stdio: [
+				'ignore',
+				fs.openSync(`${logPath}/ClipboardManager.log`, 'a'),
+				fs.openSync(`${logPath}/ClipboardManager.log`, 'a')
+			],
+			detached: false,
+			windowsHide: true
+		}
+	)
+	
+	clipboardManagerProcess.on('error', error => {
+		if (error.code === 'ENOENT') {
+			console.log('Could not find Clipboard Manager binary.')
+		}
+		terminate(1)
+	})
+	
+	clipboardManagerProcess.on('exit', code => {
+		console.log(`Clipboard manager exited with exit code ${code}`)
+		terminate(1)
+	})
+	
+	clipboardManagerProcess.on('close', code => {
+		console.log(`Clipboard manager exited with exit code ${code}`)
+		terminate(1)
+	})
 }
 
-const clipboardManagerProcess = spawn(
-	executablePath,
-	[clipboardManagerPort, clipboardServerPort],
-	{
-		stdio: [
-			'ignore',
-			fs.openSync('./logs/ClipboardManager.log', 'a'),
-			fs.openSync('./logs/ClipboardManager.log', 'a')
-		],
-		detached: false,
-		windowsHide: true
-	}
-)
-
-clipboardManagerProcess.on('error', error => {
-	if (error.code === 'ENOENT') {
-		console.log('Could not find Clipboard Manager binary.')
-	}
-	terminate(1)
-})
-
-clipboardManagerProcess.on('exit', code => {
-	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate(1)
-})
-
-clipboardManagerProcess.on('close', code => {
-	console.log(`Clipboard manager exited with exit code ${code}`)
-	terminate(1)
-})
+ensurePath(logPath)
+	.then(_path => {
+		startManager()
+	})
+	.catch(err => {
+		console.log(err)
+		console.log("Failed to create path for logs.")
+		terminate(1)
+	})

@@ -4,38 +4,25 @@ const firebase = require('firebase/app')
 const firebaseauth = require('firebase/auth')
 
 const credentials = require('./config/firebaseConfig.json')
-const { cliServerPort } = require('./util')
+const { cliServerPort, userPath, projectPath, ensurePath } = require('./util')
 
 firebase.initializeApp(credentials)
 
-const projectPath = `${os.homedir()}/.projectunity`
-const userPath = `${projectPath}/user.json`
-
 const saveUser = user => {
     return new Promise((resolve, reject) => {
-        const writeUser = () => {
-            const userSerialized = JSON.stringify(user.toJSON())
-            fs.writeFile(userPath, userSerialized, error => {
-                if (error)
-                    reject(error)
-                else
-                    resolve()
+        ensurePath(projectPath)
+            .then(_path => {
+                const userSerialized = JSON.stringify(user.toJSON())
+                fs.writeFile(userPath, userSerialized, error => {
+                    if (error)
+                        reject(error)
+                    else
+                        resolve()
+                })
             })
-        }
-
-        if (!fs.existsSync(projectPath)) {
-            fs.mkdir(projectPath, error => {
-                if (error)
-                    reject(error)
-                else {
-                    const userSerialized = JSON.stringify(user.toJSON())
-                    writeUser()
-                }
+            .catch(err => {
+                reject(err)
             })
-        }
-        else {
-            writeUser()
-        }
     })
 }
 

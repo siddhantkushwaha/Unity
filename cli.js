@@ -4,7 +4,7 @@ const prompt = require('prompt-sync')({ sigint: true })
 
 const { spawn } = require('child_process')
 const { sendMessage } = require('./client')
-const { terminate, cliServerPort } = require('./util')
+const { terminate, cliServerPort, logPath, ensurePath } = require('./util')
 const { loadUser, signInWithLink, loginWithEmailAndLink } = require('./firebaseAuth')
 
 let emailToLogin = null
@@ -108,11 +108,11 @@ server.listen(cliServerPort, () => {
             case 'list':
 
                 verifyLoggedIn()
-                    .then(user => {
+                    .then(_user => {
 
                         terminate(0)
                     })
-                    .catch(error => {
+                    .catch(_error => {
                         console.log('Cannot start clipboard management without loggin in.')
                         terminate(0)
                     })
@@ -122,11 +122,11 @@ server.listen(cliServerPort, () => {
             case 'select':
 
                 verifyLoggedIn()
-                    .then(user => {
+                    .then(_user => {
 
                         terminate(0)
                     })
-                    .catch(error => {
+                    .catch(_error => {
                         console.log('Cannot start clipboard management without loggin in.')
                         terminate(0)
                     })
@@ -134,62 +134,73 @@ server.listen(cliServerPort, () => {
                 break;
             case 'start':
 
-                verifyLoggedIn()
-                    .then(user => {
-                        const service = spawn(
-                            "node",
-                            [`${__dirname}/service.js`],
-                            {
-                                stdio: [
-                                    'ignore',
-                                    fs.openSync('./logs/UnityServer.log', 'a'),
-                                    fs.openSync('./logs/UnityServer.log', 'a')
-                                ],
-                                detached: true,
-                                windowsHide: true
-                            }
-                        )
+                const startService = () => {
+                    const service = spawn(
+                        "node",
+                        [`${__dirname}/service.js`],
+                        {
+                            stdio: [
+                                'ignore',
+                                fs.openSync(`${logPath}/UnityServer.log`, 'a'),
+                                fs.openSync(`${logPath}/UnityServer.log`, 'a')
+                            ],
+                            detached: true,
+                            windowsHide: true
+                        }
+                    )
 
-                        service.on('error', error => {
-                            if (error.code === 'ENOENT') {
-                                console.log('Could not find Unity Server script.')
-                            }
-                            terminate(1)
-                        })
-
-                        service.on('exit', code => {
-                            if (code === 2)
-                                console.log('Service already running.')
-                            else
-                                console.log(`Service exited with exit code ${code}`)
-                            terminate(1)
-                        })
-
-                        service.on('close', code => {
-                            if (code === 2)
-                                console.log('Service already running.')
-                            else
-                                console.log(`Service exited with exit code ${code}`)
-                            terminate(1)
-                        })
-
-                        // https://nodejs.org/api/child_process.html#child_process_options_detached
-                        // By default, the parent will wait for the detached child to exit. 
-                        // To prevent the parent from waiting for a given subprocess to exit, use the subprocess.unref()
-                        service.unref()
-
-                        // TODO - validate if service came up
-
-                        // time out if everything went well
-                        setTimeout(() => {
-                            console.log('Unity service was started.')
-                            terminate(0)
-                        }, 5 * 1000)
+                    service.on('error', error => {
+                        if (error.code === 'ENOENT') {
+                            console.log('Could not find Unity Server script.')
+                        }
+                        terminate(1)
                     })
-                    .catch(error => {
-                        console.log(error)
-                        console.log('Cannot start service without loggin in.')
 
+                    service.on('exit', code => {
+                        if (code === 2)
+                            console.log('Service already running.')
+                        else
+                            console.log(`Service exited with exit code ${code}`)
+                        terminate(1)
+                    })
+
+                    service.on('close', code => {
+                        if (code === 2)
+                            console.log('Service already running.')
+                        else
+                            console.log(`Service exited with exit code ${code}`)
+                        terminate(1)
+                    })
+
+                    // https://nodejs.org/api/child_process.html#child_process_options_detached
+                    // By default, the parent will wait for the detached child to exit. 
+                    // To prevent the parent from waiting for a given subprocess to exit, use the subprocess.unref()
+                    service.unref()
+
+                    // TODO - validate if service came up
+
+                    // time out if everything went well
+                    setTimeout(() => {
+                        console.log('Unity service was started.')
+                        terminate(0)
+                    }, 5 * 1000)
+                }
+
+                verifyLoggedIn()
+                    .then(_user => {
+
+                        ensurePath(logPath)
+                            .then(_path => {
+                                startService()
+                            })
+                            .catch(err => {
+                                console.log(err)
+                                terminate(0)
+                            })
+
+                    })
+                    .catch(_error => {
+                        console.log('Cannot start service without loggin in.')
                         terminate(0)
                     })
 
@@ -203,7 +214,7 @@ server.listen(cliServerPort, () => {
                         }
                         terminate(0)
                     })
-                    .catch(err => {
+                    .catch(_err => {
                         console.log('Error occured while try to stop service.')
                         terminate(0)
                     })
