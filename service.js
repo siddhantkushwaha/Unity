@@ -6,7 +6,7 @@ const { sendMessage } = require('./client')
 const { handleMessage } = require('./requestHandler')
 const { listenToClipboard } = require('./firebaseDb')
 const { loadUser, getUser } = require('./firebaseAuth')
-const { getUniqueId, terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
+const { getOS, getUniqueId, terminate, clipboardManagerPort, clipboardServerPort } = require('./util')
 
 // ------------------------------------------------------------------------------------------
 
@@ -112,33 +112,38 @@ server.listen(clipboardServerPort, () => {
 
 // ------------------- clipboard manager ----------------------------------------------------
 
-// const clipboardManagerProcess = spawn(
-// 	"D:\\Projects\\ClipboardUtilityWindows\\ClipboardManagerWin\\bin\\Release\\ClipboardManager.exe",
-// 	[clipboardManagerPort, clipboardServerPort],
-// 	{
-// 		stdio: [
-// 			'ignore',
-// 			fs.openSync('./logs/ClipboardManager.log', 'a'),
-// 			fs.openSync('./logs/ClipboardManager.log', 'a')
-// 		],
-// 		detached: false,
-// 		windowsHide: true
-// 	}
-// )
+let executablePath = `${__dirname}/assets/ClipboardManager/${getOS()}/ClipboardManager`
+if (getOS() === 'Windows') {
+	executablePath += '.exe'
+}
 
-// clipboardManagerProcess.on('error', error => {
-// 	if (error.code === 'ENOENT') {
-// 		console.log('Could not find Clipboard Manager binary.')
-// 	}
-// 	terminate(1)
-// })
+const clipboardManagerProcess = spawn(
+	executablePath,
+	[clipboardManagerPort, clipboardServerPort],
+	{
+		stdio: [
+			'ignore',
+			fs.openSync('./logs/ClipboardManager.log', 'a'),
+			fs.openSync('./logs/ClipboardManager.log', 'a')
+		],
+		detached: false,
+		windowsHide: true
+	}
+)
 
-// clipboardManagerProcess.on('exit', code => {
-// 	console.log(`Clipboard manager exited with exit code ${code}`)
-// 	terminate(1)
-// })
+clipboardManagerProcess.on('error', error => {
+	if (error.code === 'ENOENT') {
+		console.log('Could not find Clipboard Manager binary.')
+	}
+	terminate(1)
+})
 
-// clipboardManagerProcess.on('close', code => {
-// 	console.log(`Clipboard manager exited with exit code ${code}`)
-// 	terminate(1)
-// })
+clipboardManagerProcess.on('exit', code => {
+	console.log(`Clipboard manager exited with exit code ${code}`)
+	terminate(1)
+})
+
+clipboardManagerProcess.on('close', code => {
+	console.log(`Clipboard manager exited with exit code ${code}`)
+	terminate(1)
+})
