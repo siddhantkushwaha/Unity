@@ -7,8 +7,8 @@ const { sendMessage } = require('./client')
 const { handleMessage } = require('./requestHandler')
 const { listenToClipboard } = require('./firebaseDb')
 const { loadUser, getUser } = require('./firebaseAuth')
-const { getOS, getUniqueId, terminate, clipboardManagerPort, clipboardServerPort, logPath, ensurePath } = require('./util')
-
+const { getOS, getUniqueId, terminate, ensurePath, clipboardManagerPort, clipboardServerPort, logPath, projectPath } = require('./util')
+const { getClipboardManagerBinaries } = require('./getClipboardManager')
 
 // ------------------------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ server.listen(clipboardServerPort, () => {
 
 const startManager = () => {
 
-	let executablePath = path.join(__dirname, 'assets', 'ClipboardManager', getOS(), 'ClipboardManager')
+	let executablePath = path.join(projectPath, 'ClipboardManager', 'ClipboardManager')
 	if (getOS() === 'Windows')
 		executablePath += '.exe'
 
@@ -155,7 +155,14 @@ const startManager = () => {
 
 ensurePath(logPath)
 	.then(_path => {
-		startManager()
+		getClipboardManagerBinaries()
+			.then((_url) => {
+				startManager()
+			})
+			.catch(err => {
+				console.log(err)
+				terminate(1)
+			})
 	})
 	.catch(err => {
 		console.log(err)

@@ -5,6 +5,7 @@
 	"author": "Siddhant Kushwaha",
 	"license": "MIT",
 	"dependencies": {
+		"extract-zip": "^2.0.1",
 		"firebase": "^8.7.0",
 		"prompt-sync": "^4.2.0"
 	},
