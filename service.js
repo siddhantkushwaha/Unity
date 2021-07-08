@@ -13,6 +13,8 @@ const { getOS, getUniqueId, terminate, ensurePath, clipboardManagerPort,
 
 
 const serviceId = getUniqueId()
+const childProcesses = []
+
 var isFirstCloudUpdate = true
 
 const startService = async () => {
@@ -44,8 +46,15 @@ const startService = async () => {
 					clientSocket.end()
 
 					// this should kill main thread and all child processes
-					// TODO - not killing spawned process on MacOS
+					
 					if (data.type === 'command' && data.arg === 'stop') {
+
+						// killing spawned processes on MacOS explicitly
+						console.log(childProcesses)
+						for (const p of childProcesses) {
+							p.kill()
+						}
+
 						terminate(0)
 					}
 				}
@@ -109,6 +118,8 @@ const startService = async () => {
 				windowsHide: true
 			}
 		)
+
+		childProcesses.push(clipboardManagerProcess)
 
 		clipboardManagerProcess.on('error', err => {
 			handleError(err)
