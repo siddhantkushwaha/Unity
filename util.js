@@ -8,7 +8,7 @@ const clipboardManagerPort = 1625
 const clipboardServerPort = 1626
 const cliServerPort = 1627
 
-const projectPath = path.join(os.homedir(), '.projectunity')
+const projectPath = path.join(os.homedir(), '.project-unity')
 const userPath = path.join(projectPath, 'user.json')
 const logPath = path.join(projectPath, 'logs')
 const clipboardManagerPath = path.join(projectPath, 'ClipboardManager')

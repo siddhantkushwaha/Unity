@@ -1,25 +1,20 @@
 {
-	"name": "unity",
-	"version": "1.0.0",
-	"description": "Clipboard superpowers.",
-	"author": "Siddhant Kushwaha",
-	"license": "MIT",
-	"dependencies": {
-		"extract-zip": "^2.0.1",
-		"firebase": "^8.7.0",
-		"prompt-sync": "^4.2.0"
-	},
-	"bin": {
-		"unity": "cli.js"
-	},
-	"pkg": {
-		"scripts": "service.js",
-		"targets": [
-			"node12-linux-x64",
-			"node12-macos-x64",
-			"node12-win-x64"
-		],
-		"outputPath": "bin",
-		"assets": "assets"
-	}
+  "name": "unity",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/icon.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Unity\"",
+    "package-linux": "electron-packager . --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/icon.png --prune=true --out=release-builds"
+  },
+  "author": "Siddhant Kushwaha",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^16.0.2",
+    "electron-packager": "^15.4.0"
+  },
+  "dependencies": {
+    "extract-zip": "^2.0.1"
+  }
 }

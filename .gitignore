@@ -1,7 +1,2 @@
-node_modules/
-logs/
-bin/
-*.json
-!package.json
-!package-lock.json
-!firebaseConfigTemplate.json
+node_modules
+release-builds

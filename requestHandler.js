@@ -1,30 +1,35 @@
-const { getUser } = require('./firebaseAuth')
-const { addToClipboard } = require('./firebaseDb')
-
 const handleMessage = async (serviceId, data) => {
-    status = 0
+    let status = 0
     try {
-        let messageType = data.messageType
+        let messageType = data['messageType']
         switch (messageType) {
+
+            // sent by clipboard manager running on same env
             case 'syncMessage':
 
                 console.log('Sync type message received.')
-                await addToClipboard(serviceId, getUser().uid, data.updateMessage)
+                // send it to all other connected devices
 
                 break
+
+            // sent by another node
+            case 'updateMessage':
+
+                // send to clipboard manager process on my env
+
+                break
+
             default:
 
                 // message type not supported
 
                 break
         }
-    }
-    catch (err) {
+    } catch (err) {
         status = 1
     }
 
-    const response = { 'status': status }
-    return response
+    return {'status': status}
 }
 
-module.exports = { handleMessage }
+module.exports = {handleMessage}

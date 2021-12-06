@@ -7,8 +7,7 @@ const sendMessage = (port, message) => {
 
                 const messageSerialized = JSON.stringify(message)
                 serverSocket.write(messageSerialized)
-            }
-            catch (err) {
+            } catch (err) {
                 reject(err)
             }
         }).on('error', err => {
@@ -23,8 +22,7 @@ const sendMessage = (port, message) => {
                 serverSocket.end()
 
                 resolve(responseUnserialized)
-            }
-            catch (err) {
+            } catch (err) {
                 reject(err)
             }
         })
@@ -34,8 +32,7 @@ const sendMessage = (port, message) => {
             closed = true
             if (had_error) {
                 reject(Error('Socket closed because of error.'))
-            }
-            else {
+            } else {
                 resolve(null)
             }
         }
@@ -52,4 +49,4 @@ const sendMessage = (port, message) => {
     })
 }
 
-module.exports = { sendMessage }
+module.exports = {sendMessage}
