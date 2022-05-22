@@ -1,16 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:window_size/window_size.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    setWindowTitle('Unity');
-    setWindowMinSize(const Size(360, 480));
-    setWindowMaxSize(const Size(500, 900));
-  }
-
   runApp(const MyApp());
+  doWhenWindowReady(() {
+    const size = Size(300, 600);
+    appWindow.size = size;
+    appWindow.minSize = size;
+    appWindow.maxSize = size;
+    appWindow.show();
+  });
 }
 
 class MyApp extends StatelessWidget {
