@@ -5,6 +5,7 @@ void main() {
   runApp(const MyApp());
   doWhenWindowReady(() {
     const size = Size(300, 600);
+    appWindow.title = "Unity";
     appWindow.size = size;
     appWindow.minSize = size;
     appWindow.maxSize = size;
