@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Unity',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -41,9 +42,53 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          children: const <Widget>[
+            ClipboardItem(
+                text:
+                    "This is some random text. This text could be whatever you copy/paste. And we will keep a history of that here. For you to be able to resuse that. :D."),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ClipboardItem extends StatelessWidget {
+  const ClipboardItem({Key? key, required this.text}) : super(key: key);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Card(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Text(
-              "Some sample text.",
+            ListTile(
+              subtitle: Text(
+                text,
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  splashRadius: 18,
+                  splashColor: const Color.fromARGB(255, 255, 219, 219),
+                  color: Colors.red,
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  splashRadius: 18,
+                  splashColor: const Color.fromARGB(255, 215, 236, 255),
+                  color: Colors.blue,
+                  onPressed: () {},
+                ),
+              ],
             ),
           ],
         ),
