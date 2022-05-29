@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   bitsdojo_window: ^0.1.2
+  realm: ^0.2.1+alpha
 
 dev_dependencies:
   flutter_test:

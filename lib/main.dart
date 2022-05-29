@@ -1,8 +1,30 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:realm/realm.dart';
+import 'package:unity/models.dart';
+import 'package:unity/realmUtils.dart';
+
+late Realm realm;
+late RealmResults<ClipboardItem> items;
+
+// there is a global variable for subscription because it goes out of scope as soon as main's over!
+late StreamSubscription sub;
 
 void main() {
+  realm = getRealm();
+  items = realm.all<ClipboardItem>();
+  sub = items.changes.listen((changes) {
+    if (changes.inserted.isNotEmpty &&
+        changes.deleted.isNotEmpty &&
+        changes.modified.isNotEmpty) {
+      // how to call set state here
+
+    }
+  });
+
   runApp(const MyApp());
+
   doWhenWindowReady(() {
     const size = Size(300, 600);
     appWindow.title = "Unity";
@@ -13,51 +35,85 @@ void main() {
   });
 }
 
+void addTestData(realm) {
+  for (var i = 1; i <= 10; i++) {
+    var item = ClipboardItem("$i This is some text.");
+    realm.write(() {
+      realm.add(item);
+    });
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Unity',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(),
+        debugShowCheckedModeBanner: false,
+        title: 'Unity',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        // home: const LoginPage(),
+        home: const MainPage());
+  }
+}
+
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: ListViewBuilder()),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class ListViewBuilder extends StatefulWidget {
+  const ListViewBuilder({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ListViewBuilder> createState() => _ListViewBuilderState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ListViewBuilderState extends State<ListViewBuilder> {
+  void onDeleteItem(ClipboardItem item) {
+    setState(() {
+      realm.write(() {
+        realm.delete(item);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            ClipboardItem(
-                text:
-                    "This is some random text. This text could be whatever you copy/paste. And we will keep a history of that here. For you to be able to resuse that. :D."),
-          ],
-        ),
-      ),
+      body: ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (BuildContext context, int index) {
+            return ClipboardItemView(
+              clipboardItem: items[index],
+              onDeleteItem: onDeleteItem,
+            );
+          }),
     );
   }
 }
 
-class ClipboardItem extends StatelessWidget {
-  const ClipboardItem({Key? key, required this.text}) : super(key: key);
+class ClipboardItemView extends StatelessWidget {
+  const ClipboardItemView(
+      {Key? key, required this.clipboardItem, required this.onDeleteItem})
+      : super(key: key);
 
-  final String text;
+  final Function onDeleteItem;
+  final ClipboardItem clipboardItem;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +124,7 @@ class ClipboardItem extends StatelessWidget {
           children: <Widget>[
             ListTile(
               subtitle: Text(
-                text,
+                clipboardItem.text,
                 style: const TextStyle(color: Colors.black, fontSize: 14),
               ),
             ),
@@ -80,14 +136,22 @@ class ClipboardItem extends StatelessWidget {
                   splashRadius: 18,
                   splashColor: const Color.fromARGB(255, 255, 219, 219),
                   color: Colors.red,
-                  onPressed: () {},
+                  onPressed: () {
+                    onDeleteItem(clipboardItem);
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy),
                   splashRadius: 18,
                   splashColor: const Color.fromARGB(255, 215, 236, 255),
                   color: Colors.blue,
-                  onPressed: () {},
+                  onPressed: () {
+                    var item =
+                        ClipboardItem("${items.length + 1} This is some text.");
+                    realm.write(() {
+                      realm.add(item);
+                    });
+                  },
                 ),
               ],
             ),
