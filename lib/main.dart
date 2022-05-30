@@ -8,6 +8,9 @@ import 'package:unity/realmUtils.dart';
 late Realm realm;
 late RealmResults<ClipboardItem> items;
 
+bool isListInitialized = false;
+late Function setListState;
+
 // there is a global variable for subscription because it goes out of scope as soon as main's over!
 late StreamSubscription sub;
 
@@ -15,11 +18,12 @@ void main() {
   realm = getRealm();
   items = realm.all<ClipboardItem>();
   sub = items.changes.listen((changes) {
-    if (changes.inserted.isNotEmpty &&
-        changes.deleted.isNotEmpty &&
+    if (changes.inserted.isNotEmpty ||
+        changes.deleted.isNotEmpty ||
         changes.modified.isNotEmpty) {
-      // how to call set state here
-
+      if (isListInitialized) {
+        setListState(() {});
+      }
     }
   });
 
@@ -33,9 +37,11 @@ void main() {
     appWindow.maxSize = size;
     appWindow.show();
   });
+
+  // addTestData();
 }
 
-void addTestData(realm) {
+void addTestData() {
   for (var i = 1; i <= 10; i++) {
     var item = ClipboardItem("$i This is some text.");
     realm.write(() {
@@ -94,6 +100,9 @@ class _ListViewBuilderState extends State<ListViewBuilder> {
 
   @override
   Widget build(BuildContext context) {
+    isListInitialized = true;
+    setListState = setState;
+
     return Scaffold(
       body: ListView.builder(
           itemCount: items.length,
