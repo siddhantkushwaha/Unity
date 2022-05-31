@@ -90,14 +90,6 @@ class ListViewBuilder extends StatefulWidget {
 }
 
 class _ListViewBuilderState extends State<ListViewBuilder> {
-  void onDeleteItem(ClipboardItem item) {
-    setState(() {
-      realm.write(() {
-        realm.delete(item);
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     isListInitialized = true;
@@ -109,7 +101,6 @@ class _ListViewBuilderState extends State<ListViewBuilder> {
           itemBuilder: (BuildContext context, int index) {
             return ClipboardItemView(
               clipboardItem: items[index],
-              onDeleteItem: onDeleteItem,
             );
           }),
     );
@@ -117,11 +108,9 @@ class _ListViewBuilderState extends State<ListViewBuilder> {
 }
 
 class ClipboardItemView extends StatelessWidget {
-  const ClipboardItemView(
-      {Key? key, required this.clipboardItem, required this.onDeleteItem})
+  const ClipboardItemView({Key? key, required this.clipboardItem})
       : super(key: key);
 
-  final Function onDeleteItem;
   final ClipboardItem clipboardItem;
 
   @override
@@ -146,7 +135,9 @@ class ClipboardItemView extends StatelessWidget {
                   splashColor: const Color.fromARGB(255, 255, 219, 219),
                   color: Colors.red,
                   onPressed: () {
-                    onDeleteItem(clipboardItem);
+                    realm.write(() {
+                      realm.delete(clipboardItem);
+                    });
                   },
                 ),
                 IconButton(
