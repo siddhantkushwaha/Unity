@@ -9,8 +9,10 @@ part of 'models.dart';
 class ClipboardItem extends _ClipboardItem with RealmEntity, RealmObject {
   ClipboardItem(
     String text,
+    int timestamp,
   ) {
     RealmObject.set(this, 'text', text);
+    RealmObject.set(this, 'timestamp', timestamp);
   }
 
   ClipboardItem._();
@@ -19,6 +21,11 @@ class ClipboardItem extends _ClipboardItem with RealmEntity, RealmObject {
   String get text => RealmObject.get<String>(this, 'text') as String;
   @override
   set text(String value) => RealmObject.set(this, 'text', value);
+
+  @override
+  int get timestamp => RealmObject.get<int>(this, 'timestamp') as int;
+  @override
+  set timestamp(int value) => RealmObject.set(this, 'timestamp', value);
 
   @override
   Stream<RealmObjectChanges<ClipboardItem>> get changes =>
@@ -30,6 +37,7 @@ class ClipboardItem extends _ClipboardItem with RealmEntity, RealmObject {
     RealmObject.registerFactory(ClipboardItem._);
     return const SchemaObject(ClipboardItem, [
       SchemaProperty('text', RealmPropertyType.string),
+      SchemaProperty('timestamp', RealmPropertyType.int),
     ]);
   }
 }

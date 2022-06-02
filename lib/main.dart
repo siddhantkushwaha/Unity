@@ -4,6 +4,8 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:realm/realm.dart';
 import 'package:unity/models.dart';
 import 'package:unity/realmUtils.dart';
+import 'package:unity/socket/client.dart';
+import 'package:unity/socket/server.dart';
 
 late Realm realm;
 late RealmResults<ClipboardItem> items;
@@ -38,16 +40,8 @@ void main() {
     appWindow.show();
   });
 
-  // addTestData();
-}
-
-void addTestData() {
-  for (var i = 1; i <= 10; i++) {
-    var item = ClipboardItem("$i This is some text.");
-    realm.write(() {
-      realm.add(item);
-    });
-  }
+  final unityServer = SocketServer();
+  unityServer.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -146,11 +140,7 @@ class ClipboardItemView extends StatelessWidget {
                   splashColor: const Color.fromARGB(255, 215, 236, 255),
                   color: Colors.blue,
                   onPressed: () {
-                    var item =
-                        ClipboardItem("${items.length + 1} This is some text.");
-                    realm.write(() {
-                      realm.add(item);
-                    });
+                    copyTextToClipboard(clipboardItem.text);
                   },
                 ),
               ],
@@ -160,4 +150,11 @@ class ClipboardItemView extends StatelessWidget {
       ),
     );
   }
+}
+
+void copyTextToClipboard(String text) {
+  // this is a hack, we need to create a json object and serialize to string
+  // this does not do json escaping
+  String message = '{"messageType":"updateClipboard", "updateMessage": {"type": 1, "text": "$text"}}';
+  sendMessage(message, 8000);
 }
