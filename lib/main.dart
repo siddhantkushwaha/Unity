@@ -20,7 +20,7 @@ late StreamSubscription sub;
 
 void main() {
   realm = getRealm();
-  items = realm.all<ClipboardItem>();
+  items = realm.query<ClipboardItem>('TRUEPREDICATE SORT(timestamp DESC)');
   sub = items.changes.listen((changes) {
     if (changes.inserted.isNotEmpty ||
         changes.deleted.isNotEmpty ||
@@ -34,7 +34,7 @@ void main() {
   runApp(const MyApp());
 
   doWhenWindowReady(() {
-    const size = Size(300, 600);
+    const size = Size(400, 750);
     appWindow.title = "Unity";
     appWindow.size = size;
     appWindow.minSize = size;
@@ -115,10 +115,14 @@ class ClipboardItemView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            ListTile(
-              subtitle: Text(
-                clipboardItem.text,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+            SizedBox(
+              height: 100,
+              child: ListTile(
+                subtitle: Text(
+                  clipboardItem.text,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
+                ),
               ),
             ),
             Row(
@@ -156,6 +160,7 @@ class ClipboardItemView extends StatelessWidget {
 void copyTextToClipboard(String text) {
   // this is a hack, we need to create a json object and serialize to string
   // this does not do json escaping
-  String message = '{"messageType":"updateClipboard", "updateMessage": {"type": 1, "text": "$text"}}';
- clipboardConnection.sendMessage(message);
+  String message =
+      '{"messageType":"updateClipboard", "updateMessage": {"type": 1, "text": "$text"}}';
+  clipboardConnection.sendMessage(message);
 }
