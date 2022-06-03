@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:realm/realm.dart';
 import 'package:unity/dbHelper.dart';
 import 'package:unity/realmUtils.dart';
+import 'package:unity/util.dart';
 
 class SocketServer {
   int port;
@@ -14,7 +15,7 @@ class SocketServer {
 
   void init() async {
     final server = await ServerSocket.bind(InternetAddress.anyIPv4, port);
-    print('Starting server.');
+    debugPrint('Starting Unity server on port [$port].');
     server.listen((client) {
       handle(client);
     });
@@ -30,7 +31,7 @@ class SocketServer {
         client.close();
       },
       onError: (error) {
-        print(error);
+		debugPrint(error);
         client.close();
       },
       onDone: () {
@@ -40,22 +41,24 @@ class SocketServer {
   }
 
   String handleMessageObject(messageObject) {
-    // print(messageObject);
+    debugPrint(messageObject);
     final messageType = messageObject['messageType'];
     switch (messageType) {
+
+      // syncMessage types should be shared with other connected devices
       case 'syncMessage':
         final updateMessage = messageObject['updateMessage'];
         final type = updateMessage['type'];
         switch (type) {
           case 1:
             final text = updateMessage['text'];
-            // print('Received text: [$text]');
             addTextItemToDb(realm, text);
             break;
           default:
             break;
         }
         break;
+
       default:
         break;
     }

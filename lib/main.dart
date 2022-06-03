@@ -18,6 +18,8 @@ late Function setListState;
 // there is a global variable for subscription because it goes out of scope as soon as main's over!
 late StreamSubscription sub;
 
+const appTitle = 'Unity';
+
 void main() {
   realm = getRealm();
   items = realm.query<ClipboardItem>('TRUEPREDICATE SORT(timestamp DESC)');
@@ -35,7 +37,7 @@ void main() {
 
   doWhenWindowReady(() {
     const size = Size(400, 750);
-    appWindow.title = "Unity";
+    appWindow.title = appTitle;
     appWindow.size = size;
     appWindow.minSize = size;
     appWindow.maxSize = size;
@@ -52,7 +54,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Unity',
+        title: appTitle,
         theme: ThemeData(
           brightness: Brightness.dark,
           primarySwatch: Colors.blue,
@@ -116,6 +118,10 @@ class ClipboardItemView extends StatefulWidget {
   const ClipboardItemView({Key? key, required this.clipboardItem})
       : super(key: key);
 
+  final splashColor = const Color.fromARGB(255, 255, 219, 219);
+  final genericButtonColor = const Color.fromARGB(255, 193, 193, 193);
+  final deleteButtonColor = Colors.red;
+
   final ClipboardItem clipboardItem;
 
   @override
@@ -146,8 +152,8 @@ class _ClipboardItemViewState extends State<ClipboardItemView> {
                 IconButton(
                   icon: const Icon(Icons.delete),
                   splashRadius: 18,
-                  splashColor: const Color.fromARGB(255, 255, 219, 219),
-                  color: Colors.red,
+                  splashColor: widget.splashColor,
+                  color: widget.deleteButtonColor,
                   onPressed: () {
                     realm.write(() {
                       realm.delete(widget.clipboardItem);
@@ -157,26 +163,26 @@ class _ClipboardItemViewState extends State<ClipboardItemView> {
                 IconButton(
                   icon: const Icon(Icons.copy),
                   splashRadius: 18,
-                  splashColor: const Color.fromARGB(255, 215, 236, 255),
-                  color: Color.fromARGB(255, 193, 193, 193),
+                  splashColor: widget.splashColor,
+                  color: widget.genericButtonColor,
                   onPressed: () {
                     copyTextToClipboard(widget.clipboardItem.text);
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.visibility),
-                  splashRadius: 18,
-                  splashColor: const Color.fromARGB(255, 215, 236, 255),
-                  color: Color.fromARGB(255, 193, 193, 193),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.login),
-                  splashRadius: 18,
-                  splashColor: const Color.fromARGB(255, 215, 236, 255),
-                  color: Color.fromARGB(255, 193, 193, 193),
-                  onPressed: () {},
-                ),
+                // IconButton(
+                //   icon: const Icon(Icons.visibility),
+                //   splashRadius: 18,
+                //   splashColor: widget.splashColor,
+                //   color: widget.genericButtonColor,
+                //   onPressed: () {},
+                // ),
+                // IconButton(
+                //   icon: const Icon(Icons.login),
+                //   splashRadius: 18,
+                //   splashColor: widget.splashColor,
+                //   color: widget.genericButtonColor,
+                //   onPressed: () {},
+                // ),
               ],
             ),
           ],

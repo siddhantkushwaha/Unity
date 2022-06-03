@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:realm/realm.dart';
 
 // run below command to regenerate models.g.dart

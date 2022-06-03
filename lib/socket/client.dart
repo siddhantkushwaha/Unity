@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:unity/util.dart';
 
 class SocketClient {
   int port;
@@ -12,10 +13,10 @@ class SocketClient {
       (Uint8List data) {
         final response = String.fromCharCodes(data);
         socket.close();
-        // return response;
+        debugPrint('Response received $response');
       },
       onError: (error) {
-        print(error);
+        debugPrint(error);
         socket.destroy();
       },
       onDone: () {
