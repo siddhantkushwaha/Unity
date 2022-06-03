@@ -6,10 +6,14 @@ import 'package:unity/dbHelper.dart';
 import 'package:unity/realmUtils.dart';
 
 class SocketServer {
+  int port;
+
   Realm realm = getRealm();
 
+  SocketServer(this.port);
+
   void init() async {
-    final server = await ServerSocket.bind(InternetAddress.anyIPv4, 4567);
+    final server = await ServerSocket.bind(InternetAddress.anyIPv4, port);
     print('Starting server.');
     server.listen((client) {
       handle(client);

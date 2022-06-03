@@ -9,6 +9,8 @@ import 'package:unity/socket/server.dart';
 
 late Realm realm;
 late RealmResults<ClipboardItem> items;
+final clipboardConnection = SocketClient(8000);
+final unityServer = SocketServer(8080);
 
 bool isListInitialized = false;
 late Function setListState;
@@ -40,7 +42,6 @@ void main() {
     appWindow.show();
   });
 
-  final unityServer = SocketServer();
   unityServer.init();
 }
 
@@ -156,5 +157,5 @@ void copyTextToClipboard(String text) {
   // this is a hack, we need to create a json object and serialize to string
   // this does not do json escaping
   String message = '{"messageType":"updateClipboard", "updateMessage": {"type": 1, "text": "$text"}}';
-  sendMessage(message, 8000);
+ clipboardConnection.sendMessage(message);
 }
