@@ -54,8 +54,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Unity',
         theme: ThemeData(
+          brightness: Brightness.dark,
           primarySwatch: Colors.blue,
         ),
+        themeMode: ThemeMode.dark,
         // home: const LoginPage(),
         home: const MainPage());
   }
@@ -71,8 +73,16 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: ListViewBuilder()),
+    return Scaffold(
+      body: Center(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: const [
+          Expanded(
+            child: ListViewBuilder(),
+          ),
+        ],
+      )),
     );
   }
 }
@@ -102,12 +112,17 @@ class _ListViewBuilderState extends State<ListViewBuilder> {
   }
 }
 
-class ClipboardItemView extends StatelessWidget {
+class ClipboardItemView extends StatefulWidget {
   const ClipboardItemView({Key? key, required this.clipboardItem})
       : super(key: key);
 
   final ClipboardItem clipboardItem;
 
+  @override
+  State<StatefulWidget> createState() => _ClipboardItemViewState();
+}
+
+class _ClipboardItemViewState extends State<ClipboardItemView> {
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -119,9 +134,9 @@ class ClipboardItemView extends StatelessWidget {
               height: 100,
               child: ListTile(
                 subtitle: Text(
-                  clipboardItem.text,
+                  widget.clipboardItem.text,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.black, fontSize: 14),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
             ),
@@ -135,7 +150,7 @@ class ClipboardItemView extends StatelessWidget {
                   color: Colors.red,
                   onPressed: () {
                     realm.write(() {
-                      realm.delete(clipboardItem);
+                      realm.delete(widget.clipboardItem);
                     });
                   },
                 ),
@@ -143,10 +158,24 @@ class ClipboardItemView extends StatelessWidget {
                   icon: const Icon(Icons.copy),
                   splashRadius: 18,
                   splashColor: const Color.fromARGB(255, 215, 236, 255),
-                  color: Colors.blue,
+                  color: Color.fromARGB(255, 193, 193, 193),
                   onPressed: () {
-                    copyTextToClipboard(clipboardItem.text);
+                    copyTextToClipboard(widget.clipboardItem.text);
                   },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.visibility),
+                  splashRadius: 18,
+                  splashColor: const Color.fromARGB(255, 215, 236, 255),
+                  color: Color.fromARGB(255, 193, 193, 193),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.login),
+                  splashRadius: 18,
+                  splashColor: const Color.fromARGB(255, 215, 236, 255),
+                  color: Color.fromARGB(255, 193, 193, 193),
+                  onPressed: () {},
                 ),
               ],
             ),
