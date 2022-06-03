@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:unity/util.dart';
@@ -24,5 +25,15 @@ class SocketClient {
       },
     );
     socket.write(message);
+  }
+
+  void copyTextToClipboard(String text) {
+    final messageObject = {
+      "messageType": "updateClipboard",
+      "updateMessage": {"type": 1, "text": text}
+    };
+    final message = json.encode(messageObject);
+    debugPrint('Sending message $message');
+    sendMessage(message);
   }
 }

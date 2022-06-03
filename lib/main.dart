@@ -166,7 +166,7 @@ class _ClipboardItemViewState extends State<ClipboardItemView> {
                   splashColor: widget.splashColor,
                   color: widget.genericButtonColor,
                   onPressed: () {
-                    copyTextToClipboard(widget.clipboardItem.text);
+                    clipboardConnection.copyTextToClipboard(widget.clipboardItem.text);
                   },
                 ),
                 // IconButton(
@@ -190,12 +190,4 @@ class _ClipboardItemViewState extends State<ClipboardItemView> {
       ),
     );
   }
-}
-
-void copyTextToClipboard(String text) {
-  // this is a hack, we need to create a json object and serialize to string
-  // this does not do json escaping
-  String message =
-      '{"messageType":"updateClipboard", "updateMessage": {"type": 1, "text": "$text"}}';
-  clipboardConnection.sendMessage(message);
 }
