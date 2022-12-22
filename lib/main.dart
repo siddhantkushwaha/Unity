@@ -4,12 +4,11 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:realm/realm.dart';
 import 'package:unity/models.dart';
 import 'package:unity/realmUtils.dart';
-import 'package:unity/socket/client.dart';
 import 'package:unity/socket/server.dart';
 
 late Realm realm;
 late RealmResults<ClipboardItem> items;
-final clipboardConnection = SocketClient(8000);
+
 final unityServer = SocketServer(8080);
 
 bool isListInitialized = false;
@@ -166,7 +165,8 @@ class _ClipboardItemViewState extends State<ClipboardItemView> {
                   splashColor: widget.splashColor,
                   color: widget.genericButtonColor,
                   onPressed: () {
-                    clipboardConnection.copyTextToClipboard(widget.clipboardItem.text);
+                    unityServer.clipboardConnection
+                        .copyTextToClipboard(widget.clipboardItem.text);
                   },
                 ),
                 // IconButton(

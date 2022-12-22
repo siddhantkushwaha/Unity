@@ -5,11 +5,14 @@ import 'package:realm/realm.dart';
 import 'package:unity/dbHelper.dart';
 import 'package:unity/realmUtils.dart';
 import 'package:unity/util.dart';
+import 'package:unity/socket/client.dart';
 
 class SocketServer {
   int port;
 
   Realm realm = getRealm();
+
+  final clipboardConnection = SocketClient(8000);
 
   SocketServer(this.port);
 
@@ -31,7 +34,7 @@ class SocketServer {
         client.close();
       },
       onError: (error) {
-		debugPrint(error);
+        debugPrint(error);
         client.close();
       },
       onDone: () {
@@ -51,8 +54,12 @@ class SocketServer {
         final type = updateMessage['type'];
         switch (type) {
           case 1:
-            final text = updateMessage['text'];
-            addTextItemToDb(realm, text);
+            var text = updateMessage['text'];
+            var newText = processText(text);
+            addTextItemToDb(realm, newText);
+            if (newText != text) {
+              clipboardConnection.copyTextToClipboard(newText);
+            }
             break;
           default:
             break;
