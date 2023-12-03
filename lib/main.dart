@@ -35,7 +35,7 @@ void main() {
   runApp(const MyApp());
 
   doWhenWindowReady(() {
-    const size = Size(400, 750);
+    const size = Size(1000, 800);
     appWindow.title = appTitle;
     appWindow.size = size;
     appWindow.minSize = size;
@@ -74,22 +74,61 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: const [
-          Expanded(
-            child: ListViewBuilder(),
+    return const Scaffold(
+      body: MainViewBuilder(),
+    );
+  }
+}
+
+class MainViewBuilder extends StatefulWidget {
+  const MainViewBuilder({Key? key}) : super(key: key);
+
+  @override
+  State<MainViewBuilder> createState() => _MainViewBuilder();
+}
+
+class _MainViewBuilder extends State<MainViewBuilder> {
+  ClipboardItem? selectedItem;
+  final _rightColumnController = ScrollController();
+  void onTapCallback(ClipboardItem item) {
+    setState(() {
+      selectedItem = item;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          color: Colors.black,
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: Center(
+            child: ListViewBuilder(onTapCallback: onTapCallback),
           ),
-        ],
-      )),
+        ),
+        Expanded(
+            child: Container(
+          color: Colors.black26,
+          width: MediaQuery.of(context).size.width * 0.7,
+          child: SingleChildScrollView(
+              controller: _rightColumnController,
+              child: Text(
+                selectedItem?.text ?? "Select an item.",
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              )),
+        )),
+      ],
     );
   }
 }
 
 class ListViewBuilder extends StatefulWidget {
-  const ListViewBuilder({Key? key}) : super(key: key);
+  //final void onTapCallback(ClipboardItem item);
+  final void Function(ClipboardItem item) onTapCallback;
+
+  const ListViewBuilder({required this.onTapCallback, Key? key})
+      : super(key: key);
 
   @override
   State<ListViewBuilder> createState() => _ListViewBuilderState();
@@ -105,8 +144,13 @@ class _ListViewBuilderState extends State<ListViewBuilder> {
       body: ListView.builder(
           itemCount: items.length,
           itemBuilder: (BuildContext context, int index) {
-            return ClipboardItemView(
-              clipboardItem: items[index],
+            return GestureDetector(
+              child: ClipboardItemView(
+                clipboardItem: items[index],
+              ),
+              onTap: () {
+                widget.onTapCallback(items[index]);
+              },
             );
           }),
     );
@@ -119,7 +163,7 @@ class ClipboardItemView extends StatefulWidget {
 
   final splashColor = const Color.fromARGB(255, 255, 219, 219);
   final genericButtonColor = const Color.fromARGB(255, 193, 193, 193);
-  final deleteButtonColor = Colors.red;
+  final deleteButtonColor = const Color.fromARGB(255, 186, 0, 13);
 
   final ClipboardItem clipboardItem;
 
